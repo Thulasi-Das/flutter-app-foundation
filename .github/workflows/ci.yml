@@ -1,0 +1,30 @@
+name: Flutter foundation CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: flutter analyze
+      - run: flutter test --coverage
+      - run: flutter create --platforms=web --project-name flutter_app_foundation_example .
+        working-directory: example
+      - run: flutter pub get
+        working-directory: example
+      - run: flutter build web
+        working-directory: example

@@ -1,0 +1,21 @@
+name: flutter_app_foundation
+description: Product-neutral, offline-first application foundations for Flutter mobile and desktop products.
+version: 0.1.0
+publish_to: none
+repository: https://github.com/Thulasi-Das/flutter-app-foundation
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
