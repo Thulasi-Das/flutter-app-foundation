@@ -20,14 +20,31 @@ in one real SQLite transaction, then render from local data immediately.
 
 ## Libraries
 
-- `flutter_app_foundation.dart` exports core contracts and deterministic
-  adapters that do not choose product state management or a platform vendor.
+- `foundation_contracts.dart` exports clocks and ID-generation ports shared by
+  multiple capabilities.
+- `foundation_app.dart`, `foundation_auth.dart`, `foundation_data.dart`,
+  `foundation_storage.dart`,
+  `foundation_telemetry.dart`,
+  `foundation_network.dart`, `foundation_notifications.dart`,
+  `foundation_observability.dart`, `foundation_security.dart`, and
+  `foundation_sync.dart` are independently adoptable capability libraries.
+- `foundation_testing.dart` exports deterministic fakes and shared test
+  primitives. The widget harness remains on the UI surface.
 - `flutter_app_foundation_ui.dart` exports Flutter themes, fields, state views,
   adaptive shell, bootstrap gate, and widget-test harness.
+- `foundation_preset_minimal.dart`, `foundation_preset_connected.dart`, and
+  `foundation_preset_offline.dart` are curated re-export compositions.
+- `flutter_app_foundation.dart` remains the backward-compatible aggregate core
+  entry point.
 - `lib/src/**` is implementation detail. Consumers import only barrel files.
 
 Dependency injection is explicit through constructors. There is no global
 service locator, static token cache, or global mutable database.
+
+Capability libraries and presets remain in one package and version line. A
+capability becomes a separate pub package only after independent consumers,
+plugin dependencies, ownership, or release cadence make separate versioning
+valuable.
 
 ## Shared wire conventions
 
@@ -71,16 +88,16 @@ systems control when work runs.
 
 ## Adapters a product supplies
 
-| Port | Suggested first adapter | Foundation guarantee |
-| --- | --- | --- |
-| `LocalDatabase` / `SyncStore` | Drift/SQLite | migrations and atomic cursors/outbox |
-| `NetworkTransport` | Dio or `package:http` | typed envelope, retry policy, cancellation |
-| `OidcClient` | maintained AppAuth-compatible plugin | Authorization Code + PKCE |
-| `SecureStorage` | Keychain/Keystore/credential vault | secrets never enter SQLite/preferences |
-| `Telemetry` / `LogSink` | OpenTelemetry/crash vendor | allowlisted metadata only |
-| `NotificationService` | APNs/FCM adapter | opaque payloads and permission seam |
-| `BackupChecksum` | maintained SHA-256 package | verified, staged restore |
-| `BackupEncryption` | reviewed platform/crypto library | no home-grown cryptography |
+| Port                          | Suggested first adapter              | Foundation guarantee                       |
+| ----------------------------- | ------------------------------------ | ------------------------------------------ |
+| `LocalDatabase` / `SyncStore` | Drift/SQLite                         | migrations and atomic cursors/outbox       |
+| `NetworkTransport`            | Dio or `package:http`                | typed envelope, retry policy, cancellation |
+| `OidcClient`                  | maintained AppAuth-compatible plugin | Authorization Code + PKCE                  |
+| `SecureStorage`               | Keychain/Keystore/credential vault   | secrets never enter SQLite/preferences     |
+| `Telemetry` / `LogSink`       | OpenTelemetry/crash vendor           | allowlisted metadata only                  |
+| `NotificationService`         | APNs/FCM adapter                     | opaque payloads and permission seam        |
+| `BackupChecksum`              | maintained SHA-256 package           | verified, staged restore                   |
+| `BackupEncryption`            | reviewed platform/crypto library     | no home-grown cryptography                 |
 
 In-memory adapters are deterministic fakes/reference behavior, not production
 storage or security implementations.

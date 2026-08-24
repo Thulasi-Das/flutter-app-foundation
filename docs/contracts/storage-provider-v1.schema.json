@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://foundation.example/contracts/storage-provider-v1.schema.json",
+  "title": "Workspace storage provider contract v1",
+  "type": "object",
+  "required": [
+    "contractVersion",
+    "storeId",
+    "workspaceId",
+    "provider",
+    "privacyMode",
+    "dataLocation",
+    "configuration"
+  ],
+  "properties": {
+    "contractVersion": { "const": "1.0" },
+    "storeId": { "type": "string", "minLength": 1 },
+    "workspaceId": { "type": "string", "minLength": 1 },
+    "provider": { "type": "string", "minLength": 1 },
+    "privacyMode": {
+      "enum": [
+        "local_only",
+        "direct_user_provider",
+        "backend_brokered",
+        "managed"
+      ]
+    },
+    "dataLocation": {
+      "enum": ["device", "user_cloud", "user_infrastructure", "managed_service"]
+    },
+    "displayName": { "type": ["string", "null"] },
+    "configuration": {
+      "type": "object",
+      "description": "Non-secret provider configuration only."
+    },
+    "secretReference": {
+      "type": ["string", "null"],
+      "description": "Opaque reference resolved by the authorized runtime."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "query": {
+      "type": "object",
+      "required": ["collection", "filters", "limit", "includeDeleted"],
+      "properties": {
+        "collection": { "type": "string", "minLength": 1 },
+        "filters": { "type": "object" },
+        "cursor": { "type": ["string", "null"] },
+        "limit": { "type": "integer", "minimum": 1, "maximum": 1000 },
+        "includeDeleted": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "page": {
+      "type": "object",
+      "required": ["records"],
+      "properties": {
+        "records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/record" }
+        },
+        "nextCursor": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "record": {
+      "type": "object",
+      "required": [
+        "collection",
+        "recordId",
+        "values",
+        "version",
+        "updatedAt",
+        "deleted"
+      ],
+      "properties": {
+        "collection": { "type": "string", "minLength": 1 },
+        "recordId": { "type": "string", "minLength": 1 },
+        "values": { "type": "object" },
+        "version": { "type": "integer", "minimum": 0 },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "deleted": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "required": [
+        "transactions",
+        "watch",
+        "pagination",
+        "attachments",
+        "offline",
+        "endToEndEncryption",
+        "multiDevice"
+      ],
+      "properties": {
+        "transactions": { "type": "boolean" },
+        "watch": { "type": "boolean" },
+        "pagination": { "type": "boolean" },
+        "attachments": { "type": "boolean" },
+        "offline": { "type": "boolean" },
+        "endToEndEncryption": { "type": "boolean" },
+        "multiDevice": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "error": {
+      "enum": [
+        "invalid_configuration",
+        "authentication_failed",
+        "permission_denied",
+        "not_found",
+        "conflict",
+        "rate_limited",
+        "unavailable",
+        "unsupported",
+        "store_error"
+      ]
+    }
+  }
+}

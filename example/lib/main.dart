@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_app_foundation/flutter_app_foundation.dart';
-import 'package:flutter_app_foundation/flutter_app_foundation_ui.dart';
+import 'package:flutter_app_foundation/foundation_preset_minimal.dart';
 
 void main() => runApp(const FoundationExample());
 

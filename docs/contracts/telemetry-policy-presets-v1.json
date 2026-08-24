@@ -1,0 +1,84 @@
+{
+  "contractVersion": "1.0",
+  "disclaimer": "Conservative engineering defaults only; not legal advice or certification.",
+  "consentRequired": [
+    "reliability",
+    "product_analytics",
+    "product_improvement",
+    "personalization",
+    "commercial_insights"
+  ],
+  "commercialInsightsDefaultEnabled": false,
+  "maximumRetentionDays": {
+    "reliability": 30,
+    "product_analytics": 90,
+    "product_improvement": 90,
+    "personalization": 30,
+    "commercial_insights": 30
+  },
+  "profiles": {
+    "global_strict": {
+      "countryCodes": [],
+      "honorGlobalPrivacyControl": false
+    },
+    "eu_eea": {
+      "countryCodes": [
+        "AT",
+        "BE",
+        "BG",
+        "HR",
+        "CY",
+        "CZ",
+        "DK",
+        "EE",
+        "FI",
+        "FR",
+        "DE",
+        "GR",
+        "HU",
+        "IE",
+        "IT",
+        "LV",
+        "LT",
+        "LU",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SK",
+        "SI",
+        "ES",
+        "SE",
+        "IS",
+        "LI",
+        "NO"
+      ],
+      "honorGlobalPrivacyControl": false
+    },
+    "united_kingdom": {
+      "countryCodes": ["GB", "UK"],
+      "honorGlobalPrivacyControl": false
+    },
+    "us_california": {
+      "countryCodes": ["US-CA"],
+      "honorGlobalPrivacyControl": true
+    },
+    "india": {
+      "countryCodes": ["IN"],
+      "honorGlobalPrivacyControl": false
+    },
+    "brazil": {
+      "countryCodes": ["BR"],
+      "honorGlobalPrivacyControl": false
+    },
+    "canada": {
+      "countryCodes": ["CA"],
+      "honorGlobalPrivacyControl": false
+    },
+    "australia": {
+      "countryCodes": ["AU"],
+      "honorGlobalPrivacyControl": false
+    }
+  }
+}

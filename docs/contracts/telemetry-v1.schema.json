@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://foundation.example/contracts/telemetry-v1.schema.json",
+  "title": "Consent-governed telemetry event v1",
+  "$ref": "#/$defs/event",
+  "$defs": {
+    "purpose": {
+      "enum": [
+        "reliability",
+        "product_analytics",
+        "product_improvement",
+        "personalization",
+        "commercial_insights"
+      ]
+    },
+    "dataClass": {
+      "enum": [
+        "operational_metadata",
+        "device_metadata",
+        "usage_aggregate",
+        "interaction",
+        "error_diagnostic",
+        "account_context",
+        "commercial_profile"
+      ]
+    },
+    "event": {
+      "type": "object",
+      "required": [
+        "contractVersion",
+        "eventId",
+        "eventName",
+        "purpose",
+        "dataClasses",
+        "attributes",
+        "occurredAt",
+        "subjectKey"
+      ],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "eventId": { "type": "string", "minLength": 1 },
+        "eventName": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{2,63}$"
+        },
+        "purpose": { "$ref": "#/$defs/purpose" },
+        "dataClasses": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dataClass" },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": ["string", "integer", "number", "boolean", "null"]
+          }
+        },
+        "occurredAt": { "type": "string", "format": "date-time" },
+        "subjectKey": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{16,128}$"
+        },
+        "sessionId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "consentReceipt": {
+      "type": "object",
+      "required": [
+        "subjectKey",
+        "purpose",
+        "state",
+        "policyVersion",
+        "noticeVersion",
+        "decidedAt",
+        "source"
+      ],
+      "properties": {
+        "subjectKey": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{16,128}$"
+        },
+        "purpose": { "$ref": "#/$defs/purpose" },
+        "state": { "enum": ["granted", "denied", "withdrawn"] },
+        "policyVersion": { "type": "string", "minLength": 1 },
+        "noticeVersion": { "type": "string", "minLength": 1 },
+        "decidedAt": { "type": "string", "format": "date-time" },
+        "source": {
+          "enum": ["onboarding", "privacy_settings", "api"]
+        },
+        "expiresAt": { "type": ["string", "null"], "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

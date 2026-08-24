@@ -1,23 +1,17 @@
 library;
 
-export 'src/accessibility/accessibility.dart';
-export 'src/app_shell/app_state.dart';
-export 'src/auth/auth.dart';
-export 'src/backup/backup.dart';
-export 'src/bootstrap/bootstrap.dart';
-export 'src/config/app_configuration.dart';
-export 'src/connectivity/connectivity.dart';
-export 'src/deep_links/deep_links.dart';
-export 'src/feature_flags/feature_flags.dart';
-export 'src/lifecycle/lifecycle.dart';
-export 'src/local_database/local_database.dart';
-export 'src/localization/localization.dart';
-export 'src/navigation/navigation.dart';
-export 'src/network/network.dart';
-export 'src/notifications/notifications.dart';
-export 'src/observability/observability.dart';
-export 'src/security/security.dart';
-export 'src/secure_storage/secure_storage.dart';
-export 'src/sync/sync.dart';
-export 'src/testing/fakes.dart';
-export 'src/testing/primitives.dart';
+// Backward-compatible aggregate entry point. New applications should import
+// capability libraries or a curated preset to make their dependency intent
+// explicit.
+export 'foundation_app.dart';
+export 'foundation_auth.dart';
+export 'foundation_contracts.dart';
+export 'foundation_data.dart';
+export 'foundation_network.dart';
+export 'foundation_notifications.dart';
+export 'foundation_observability.dart';
+export 'foundation_security.dart';
+export 'foundation_storage.dart';
+export 'foundation_sync.dart';
+export 'foundation_telemetry.dart';
+export 'foundation_testing.dart';

@@ -1,5 +1,18 @@
 # Product integration guide
 
+## 0. Select capabilities
+
+Start with the smallest preset matching the product:
+
+- `foundation_preset_minimal.dart` for a connected application shell;
+- `foundation_preset_connected.dart` for authenticated, observable apps with
+  notifications;
+- `foundation_preset_offline.dart` for local data, backup, and sync.
+
+Products with a specialized composition should import capability libraries
+directly. Switching from a preset to direct imports changes only the public
+imports; it does not change runtime contracts or stored data.
+
 ## 1. Compose at the application root
 
 Build one dependency graph at startup. Inject ports into repositories and view
