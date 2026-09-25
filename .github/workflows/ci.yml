@@ -14,26 +14,30 @@ concurrency:
 
 jobs:
   validate:
-    name: Validate (Flutter ${{ matrix.flutter }})
+    name: Validate (Flutter ${{ matrix.label }})
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         # The minimum supported release (pubspec `flutter:` constraint) and
-        # the current stable release.
-        flutter: ["3.35.0", "stable"]
+        # the current stable release (an empty version means latest stable).
+        include:
+          - label: "3.35.0"
+            version: "3.35.0"
+          - label: stable
+            version: ""
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: ${{ matrix.flutter == 'stable' && '' || matrix.flutter }}
+          flutter-version: ${{ matrix.version }}
           cache: true
       - run: flutter --version
       - run: flutter pub get
       - name: Format
-        if: matrix.flutter == 'stable'
+        if: matrix.label == 'stable'
         run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze --fatal-infos
       - run: flutter test --coverage
@@ -51,7 +55,7 @@ jobs:
           flutter create --platforms=web --project-name flutter_app_foundation_example .
           flutter build web
       - uses: actions/upload-artifact@v4
-        if: matrix.flutter == 'stable'
+        if: matrix.label == 'stable'
         with:
           name: coverage
           path: coverage/lcov.info
