@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart' as crypto;
+
+import '../core/secure_ids.dart';
+import '../network/network.dart';
 import '../secure_storage/secure_storage.dart';
 import '../testing/primitives.dart';
 
@@ -103,7 +107,36 @@ final class OidcAuthorizationRequest {
     required this.state,
     required this.nonce,
     required this.codeChallenge,
+    this.codeVerifier,
+    this.additionalParameters = const <String, String>{},
   });
+
+  /// Creates a request with freshly generated `state`, `nonce`, and an S256
+  /// PKCE verifier/challenge pair.
+  ///
+  /// Keep the returned request until the redirect arrives: the [OidcClient]
+  /// needs [codeVerifier] for the token exchange and must reject a callback
+  /// whose `state` differs from [state].
+  factory OidcAuthorizationRequest.withPkce({
+    required Uri authorizationEndpoint,
+    required String clientId,
+    required Uri redirectUri,
+    List<String> scopes = const <String>['openid', 'profile', 'offline_access'],
+    Map<String, String> additionalParameters = const <String, String>{},
+  }) {
+    final verifier = secureRandomString(length: 64);
+    return OidcAuthorizationRequest(
+      authorizationEndpoint: authorizationEndpoint,
+      clientId: clientId,
+      redirectUri: redirectUri,
+      scopes: List<String>.unmodifiable(scopes),
+      state: secureRandomString(length: 32),
+      nonce: secureRandomString(length: 32),
+      codeChallenge: pkceS256Challenge(verifier),
+      codeVerifier: verifier,
+      additionalParameters: additionalParameters,
+    );
+  }
 
   final Uri authorizationEndpoint;
   final String clientId;
@@ -112,7 +145,61 @@ final class OidcAuthorizationRequest {
   final String state;
   final String nonce;
   final String codeChallenge;
+
+  /// The PKCE secret. Never send it to the authorization endpoint.
+  final String? codeVerifier;
+  final Map<String, String> additionalParameters;
+
+  /// The URL to open in the system browser (never an embedded web view).
+  Uri get authorizationUri => authorizationEndpoint.replace(
+    queryParameters: <String, String>{
+      ...authorizationEndpoint.queryParameters,
+      ...additionalParameters,
+      'response_type': 'code',
+      'client_id': clientId,
+      'redirect_uri': redirectUri.toString(),
+      'scope': scopes.join(' '),
+      'state': state,
+      'nonce': nonce,
+      'code_challenge': codeChallenge,
+      'code_challenge_method': 'S256',
+    },
+  );
+
+  /// Validates an authorization redirect and returns its `code`.
+  ///
+  /// Throws [OidcCallbackException] for provider errors, a mismatched
+  /// `state` (possible CSRF), or a missing code.
+  String authorizationCodeFrom(Uri callback) {
+    final params = callback.queryParameters;
+    if (params['error'] case final error?) {
+      throw OidcCallbackException(error, params['error_description']);
+    }
+    if (params['state'] != state) {
+      throw const OidcCallbackException('state_mismatch');
+    }
+    final code = params['code'];
+    if (code == null || code.isEmpty) {
+      throw const OidcCallbackException('missing_code');
+    }
+    return code;
+  }
 }
+
+final class OidcCallbackException implements Exception {
+  const OidcCallbackException(this.code, [this.description]);
+
+  final String code;
+  final String? description;
+
+  @override
+  String toString() => 'OidcCallbackException($code)';
+}
+
+/// RFC 7636 S256 code challenge for [verifier].
+String pkceS256Challenge(String verifier) => base64Url
+    .encode(crypto.sha256.convert(ascii.encode(verifier)).bytes)
+    .replaceAll('=', '');
 
 abstract interface class OidcClient {
   Future<AuthTokens> authorize(OidcAuthorizationRequest request);
@@ -162,7 +249,8 @@ final class AuthCoordinator {
       return _snapshot;
     }
     final current = await validTokens();
-    if (current == null) {
+    // A transient refresh failure keeps the stored session.
+    if (current == null && await _tokenStore.read() == null) {
       _emit(const AuthSnapshot(status: AuthStatus.expired));
     }
     return _snapshot;
@@ -189,20 +277,40 @@ final class AuthCoordinator {
   Future<AuthTokens?> validTokens() => _activeTokenRequest ??= _readOrRefresh()
       .whenComplete(() => _activeTokenRequest = null);
 
-  Future<AuthTokens?> _readOrRefresh() async {
+  /// Refreshes even when the stored access token has not expired, for example
+  /// after the server rejected it with `401`. Concurrent callers share one
+  /// refresh.
+  Future<AuthTokens?> forceRefresh() => _activeTokenRequest ??= _readOrRefresh(
+    force: true,
+  ).whenComplete(() => _activeTokenRequest = null);
+
+  Future<AuthTokens?> _readOrRefresh({bool force = false}) async {
     final tokens = await _tokenStore.read();
     if (tokens == null) return null;
-    if (!tokens.isExpiring(_clock.nowUtc(), refreshLeeway)) {
+    if (!force && !tokens.isExpiring(_clock.nowUtc(), refreshLeeway)) {
       _authenticated(tokens);
       return tokens;
     }
+    final previous = _snapshot;
     _emit(const AuthSnapshot(status: AuthStatus.refreshing));
     try {
       final refreshed = await _oidc.refresh(tokens.refreshToken);
       await _tokenStore.save(refreshed);
       _authenticated(refreshed);
       return refreshed;
-    } on Object {
+    } on Object catch (error) {
+      if (error is ApiFailure && error.retryable) {
+        // Offline, timeouts, and server errors must not sign the user out; the
+        // refresh token is kept so a later attempt can succeed.
+        _emit(
+          AuthSnapshot(
+            status: AuthStatus.authenticated,
+            subject: previous.subject ?? _subjectReader?.subject(tokens),
+            errorCode: 'refresh_unavailable',
+          ),
+        );
+        return null;
+      }
       await _tokenStore.clear();
       _emit(
         const AuthSnapshot(
@@ -240,9 +348,31 @@ final class AuthCoordinator {
   }
 
   void _emit(AuthSnapshot value) {
+    if (value.status == _snapshot.status &&
+        value.subject == _snapshot.subject &&
+        value.errorCode == _snapshot.errorCode) {
+      return;
+    }
     _snapshot = value;
     _snapshots.add(value);
   }
 
   Future<void> dispose() => _snapshots.close();
+}
+
+/// Connects an [AuthCoordinator] to [NetworkClient]: supplies fresh access
+/// tokens and performs one forced refresh when the server answers `401`.
+final class AuthCoordinatorTokenProvider
+    implements RefreshableAccessTokenProvider {
+  const AuthCoordinatorTokenProvider(this._coordinator);
+
+  final AuthCoordinator _coordinator;
+
+  @override
+  Future<String?> accessToken() async =>
+      (await _coordinator.validTokens())?.accessToken;
+
+  @override
+  Future<String?> refreshAccessToken() async =>
+      (await _coordinator.forceRefresh())?.accessToken;
 }

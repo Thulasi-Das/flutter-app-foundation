@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../localization/foundation_strings.dart';
+
 final class FoundationTextField extends StatelessWidget {
   const FoundationTextField({
     required this.label,
@@ -106,7 +108,9 @@ final class _FoundationPasswordFieldState
     validator: widget.validator,
     autofillHints: widget.autofillHints,
     suffixIcon: IconButton(
-      tooltip: hidden ? 'Show password' : 'Hide password',
+      tooltip: hidden
+          ? FoundationStrings.of(context).showPassword
+          : FoundationStrings.of(context).hidePassword,
       onPressed: () => setState(() => hidden = !hidden),
       icon: Icon(hidden ? Icons.visibility : Icons.visibility_off),
     ),
@@ -138,7 +142,7 @@ final class FoundationSearchField extends StatelessWidget {
     suffixIcon: onClear == null
         ? null
         : IconButton(
-            tooltip: 'Clear search',
+            tooltip: FoundationStrings.of(context).clearSearch,
             onPressed: onClear,
             icon: const Icon(Icons.close),
           ),
@@ -315,8 +319,9 @@ Future<bool?> showFoundationConfirmation(
   BuildContext context, {
   required String title,
   required String message,
-  String cancelLabel = 'Cancel',
-  String confirmLabel = 'Continue',
+  String? cancelLabel,
+  String? confirmLabel,
+  bool destructive = false,
 }) => showDialog<bool>(
   context: context,
   builder: (context) => AlertDialog(
@@ -325,11 +330,17 @@ Future<bool?> showFoundationConfirmation(
     actions: <Widget>[
       TextButton(
         onPressed: () => Navigator.of(context).pop(false),
-        child: Text(cancelLabel),
+        child: Text(cancelLabel ?? FoundationStrings.of(context).cancel),
       ),
       FilledButton(
+        style: destructive
+            ? FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Theme.of(context).colorScheme.onError,
+              )
+            : null,
         onPressed: () => Navigator.of(context).pop(true),
-        child: Text(confirmLabel),
+        child: Text(confirmLabel ?? FoundationStrings.of(context).confirm),
       ),
     ],
   ),

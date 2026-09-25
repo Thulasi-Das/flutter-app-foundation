@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import '../testing/primitives.dart';
 
@@ -46,6 +47,8 @@ final class RedactionPolicy {
     'durationMs',
     'entityType',
     'environment',
+    'errorType',
+    'fatal',
     'feature',
     'httpMethod',
     'operation',
@@ -54,6 +57,7 @@ final class RedactionPolicy {
     'release',
     'routePattern',
     'schemaVersion',
+    'source',
     'status',
     'statusCode',
     'syncPhase',
@@ -166,4 +170,118 @@ final class _NoopSpan implements TelemetrySpan {
   void setStatus(String status) {}
   @override
   void end() {}
+}
+
+/// Writes events to the platform debug log (`dart:developer`), which shows in
+/// IDE consoles and DevTools. Intended for development builds.
+final class DebugLogSink implements LogSink {
+  const DebugLogSink({this.minimumLevel = LogLevel.debug});
+
+  final LogLevel minimumLevel;
+
+  @override
+  void write(LogEvent event) {
+    if (event.level.index < minimumLevel.index) return;
+    developer.log(
+      jsonEncode(event.attributes),
+      name: event.code,
+      level: switch (event.level) {
+        LogLevel.debug => 500,
+        LogLevel.info => 800,
+        LogLevel.warning => 900,
+        LogLevel.error => 1000,
+        LogLevel.critical => 1200,
+      },
+      time: event.timestamp,
+    );
+  }
+}
+
+/// Forwards each event to every sink. A failing sink never prevents delivery
+/// to the others.
+final class FanOutLogSink implements LogSink {
+  FanOutLogSink(Iterable<LogSink> sinks)
+    : _sinks = List<LogSink>.unmodifiable(sinks);
+
+  final List<LogSink> _sinks;
+
+  @override
+  Future<void> write(LogEvent event) async {
+    for (final sink in _sinks) {
+      try {
+        await sink.write(event);
+      } on Object {
+        // Logging must never crash the app.
+      }
+    }
+  }
+}
+
+/// Port for crash/error reporting vendors (Sentry, Crashlytics, ...).
+///
+/// Implementations must scrub personal data from [error] messages and must
+/// honour the user's reliability telemetry consent.
+abstract interface class CrashReporter {
+  Future<void> recordError(
+    Object error,
+    StackTrace? stackTrace, {
+    required bool fatal,
+    String? source,
+  });
+}
+
+/// Records errors as structured log events without their messages, which
+/// may contain personal data. Useful as a default and alongside a vendor.
+final class LoggingCrashReporter implements CrashReporter {
+  const LoggingCrashReporter(this._logger);
+
+  final StructuredLogger _logger;
+
+  @override
+  Future<void> recordError(
+    Object error,
+    StackTrace? stackTrace, {
+    required bool fatal,
+    String? source,
+  }) async {
+    await _logger.record(
+      fatal ? LogLevel.critical : LogLevel.error,
+      'app.uncaught_error',
+      attributes: <String, Object?>{
+        'errorType': error.runtimeType.toString(),
+        'fatal': fatal,
+        'source': ?source,
+      },
+    );
+  }
+}
+
+/// Sends each error to every reporter; one failing reporter does not block
+/// the others.
+final class FanOutCrashReporter implements CrashReporter {
+  FanOutCrashReporter(Iterable<CrashReporter> reporters)
+    : _reporters = List<CrashReporter>.unmodifiable(reporters);
+
+  final List<CrashReporter> _reporters;
+
+  @override
+  Future<void> recordError(
+    Object error,
+    StackTrace? stackTrace, {
+    required bool fatal,
+    String? source,
+  }) async {
+    for (final reporter in _reporters) {
+      try {
+        await reporter.recordError(
+          error,
+          stackTrace,
+          fatal: fatal,
+          source: source,
+        );
+      } on Object {
+        // Reporting must never crash the app.
+      }
+    }
+  }
 }

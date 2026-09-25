@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart' as crypto;
+
 import '../testing/primitives.dart';
 
 final class BackupManifest {
@@ -58,6 +60,18 @@ final class BackupArchive {
 abstract interface class BackupChecksum {
   String get algorithm;
   Future<String> calculate(Uint8List bytes);
+}
+
+/// Production SHA-256 checksum for backup integrity verification.
+final class Sha256BackupChecksum implements BackupChecksum {
+  const Sha256BackupChecksum();
+
+  @override
+  String get algorithm => 'sha256';
+
+  @override
+  Future<String> calculate(Uint8List bytes) async =>
+      crypto.sha256.convert(bytes).toString();
 }
 
 abstract interface class BackupEncryption {

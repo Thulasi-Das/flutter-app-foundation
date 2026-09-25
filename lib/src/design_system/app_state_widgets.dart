@@ -31,7 +31,7 @@ final class FoundationStateView extends StatelessWidget {
     return Semantics(
       container: true,
       liveRegion: state == FoundationViewState.error,
-      label: '$title. $message',
+      label: message.isEmpty ? title : '$title. $message',
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 440),
@@ -46,8 +46,10 @@ final class FoundationStateView extends StatelessWidget {
                   Icon(icon, size: 40),
                 const SizedBox(height: FoundationSpacing.md),
                 Text(title, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: FoundationSpacing.xs),
-                Text(message, textAlign: TextAlign.center),
+                if (message.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: FoundationSpacing.xs),
+                  Text(message, textAlign: TextAlign.center),
+                ],
                 if (actionLabel != null && onAction != null) ...<Widget>[
                   const SizedBox(height: FoundationSpacing.md),
                   FilledButton(onPressed: onAction, child: Text(actionLabel!)),
