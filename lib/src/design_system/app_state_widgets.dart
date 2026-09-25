@@ -77,19 +77,21 @@ final class FoundationStatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-        liveRegion: true,
-        child: Material(
-          color: Theme.of(context).colorScheme.secondaryContainer,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(children: <Widget>[
-              Icon(icon),
-              const SizedBox(width: 12),
-              Expanded(child: Text(message)),
-              if (actionLabel != null && onAction != null)
-                TextButton(onPressed: onAction, child: Text(actionLabel!)),
-            ]),
-          ),
+    liveRegion: true,
+    child: Material(
+      color: Theme.of(context).colorScheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: <Widget>[
+            Icon(icon),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+            if (actionLabel != null && onAction != null)
+              TextButton(onPressed: onAction, child: Text(actionLabel!)),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }

@@ -25,15 +25,15 @@ final class BackupManifest {
   final bool encrypted;
 
   Map<String, Object?> toJson() => <String, Object?>{
-        'formatVersion': formatVersion,
-        'schemaVersion': schemaVersion,
-        'appVersion': appVersion,
-        'createdAt': createdAt.toUtc().toIso8601String(),
-        'sizeBytes': sizeBytes,
-        'checksumAlgorithm': checksumAlgorithm,
-        'checksum': checksum,
-        'encrypted': encrypted,
-      };
+    'formatVersion': formatVersion,
+    'schemaVersion': schemaVersion,
+    'appVersion': appVersion,
+    'createdAt': createdAt.toUtc().toIso8601String(),
+    'sizeBytes': sizeBytes,
+    'checksumAlgorithm': checksumAlgorithm,
+    'checksum': checksum,
+    'encrypted': encrypted,
+  };
 
   static BackupManifest fromJson(Map<String, Object?> json) {
     return BackupManifest(
@@ -97,10 +97,10 @@ final class BackupCoordinator {
     required BackupChecksum checksum,
     required Clock clock,
     required String appVersion,
-  })  : _source = source,
-        _checksum = checksum,
-        _clock = clock,
-        _appVersion = appVersion;
+  }) : _source = source,
+       _checksum = checksum,
+       _clock = clock,
+       _appVersion = appVersion;
 
   final BackupSource _source;
   final BackupChecksum _checksum;
@@ -197,7 +197,10 @@ final class InMemoryBackupDestination implements BackupDestination {
 
   @override
   Future<List<BackupDescriptor>> list() async => _archives.entries
-      .map((entry) => BackupDescriptor(id: entry.key, manifest: entry.value.manifest))
+      .map(
+        (entry) =>
+            BackupDescriptor(id: entry.key, manifest: entry.value.manifest),
+      )
       .toList(growable: false);
 
   @override

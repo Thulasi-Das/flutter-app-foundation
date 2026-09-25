@@ -9,8 +9,10 @@ import 'package:flutter_app_foundation/foundation_observability.dart'
     as observability;
 import 'package:flutter_app_foundation/foundation_preset_connected.dart'
     as connected;
-import 'package:flutter_app_foundation/foundation_preset_minimal.dart' as minimal;
-import 'package:flutter_app_foundation/foundation_preset_offline.dart' as offline;
+import 'package:flutter_app_foundation/foundation_preset_minimal.dart'
+    as minimal;
+import 'package:flutter_app_foundation/foundation_preset_offline.dart'
+    as offline;
 import 'package:flutter_app_foundation/foundation_security.dart' as security;
 import 'package:flutter_app_foundation/foundation_sync.dart' as sync;
 import 'package:flutter_app_foundation/foundation_telemetry.dart' as telemetry;

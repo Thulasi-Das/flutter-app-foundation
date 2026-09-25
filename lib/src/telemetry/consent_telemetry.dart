@@ -51,24 +51,24 @@ enum ComplianceProfile {
 
 extension TelemetryPurposeWireName on TelemetryPurpose {
   String get wireName => switch (this) {
-        TelemetryPurpose.reliability => 'reliability',
-        TelemetryPurpose.productAnalytics => 'product_analytics',
-        TelemetryPurpose.productImprovement => 'product_improvement',
-        TelemetryPurpose.personalization => 'personalization',
-        TelemetryPurpose.commercialInsights => 'commercial_insights',
-      };
+    TelemetryPurpose.reliability => 'reliability',
+    TelemetryPurpose.productAnalytics => 'product_analytics',
+    TelemetryPurpose.productImprovement => 'product_improvement',
+    TelemetryPurpose.personalization => 'personalization',
+    TelemetryPurpose.commercialInsights => 'commercial_insights',
+  };
 }
 
 extension TelemetryDataClassWireName on TelemetryDataClass {
   String get wireName => switch (this) {
-        TelemetryDataClass.operationalMetadata => 'operational_metadata',
-        TelemetryDataClass.deviceMetadata => 'device_metadata',
-        TelemetryDataClass.usageAggregate => 'usage_aggregate',
-        TelemetryDataClass.interaction => 'interaction',
-        TelemetryDataClass.errorDiagnostic => 'error_diagnostic',
-        TelemetryDataClass.accountContext => 'account_context',
-        TelemetryDataClass.commercialProfile => 'commercial_profile',
-      };
+    TelemetryDataClass.operationalMetadata => 'operational_metadata',
+    TelemetryDataClass.deviceMetadata => 'device_metadata',
+    TelemetryDataClass.usageAggregate => 'usage_aggregate',
+    TelemetryDataClass.interaction => 'interaction',
+    TelemetryDataClass.errorDiagnostic => 'error_diagnostic',
+    TelemetryDataClass.accountContext => 'account_context',
+    TelemetryDataClass.commercialProfile => 'commercial_profile',
+  };
 }
 
 extension ConsentStateWireName on ConsentState {
@@ -77,23 +77,23 @@ extension ConsentStateWireName on ConsentState {
 
 extension ConsentSourceWireName on ConsentSource {
   String get wireName => switch (this) {
-        ConsentSource.onboarding => 'onboarding',
-        ConsentSource.privacySettings => 'privacy_settings',
-        ConsentSource.api => 'api',
-      };
+    ConsentSource.onboarding => 'onboarding',
+    ConsentSource.privacySettings => 'privacy_settings',
+    ConsentSource.api => 'api',
+  };
 }
 
 extension ComplianceProfileWireName on ComplianceProfile {
   String get wireName => switch (this) {
-        ComplianceProfile.globalStrict => 'global_strict',
-        ComplianceProfile.euEea => 'eu_eea',
-        ComplianceProfile.unitedKingdom => 'united_kingdom',
-        ComplianceProfile.usCalifornia => 'us_california',
-        ComplianceProfile.india => 'india',
-        ComplianceProfile.brazil => 'brazil',
-        ComplianceProfile.canada => 'canada',
-        ComplianceProfile.australia => 'australia',
-      };
+    ComplianceProfile.globalStrict => 'global_strict',
+    ComplianceProfile.euEea => 'eu_eea',
+    ComplianceProfile.unitedKingdom => 'united_kingdom',
+    ComplianceProfile.usCalifornia => 'us_california',
+    ComplianceProfile.india => 'india',
+    ComplianceProfile.brazil => 'brazil',
+    ComplianceProfile.canada => 'canada',
+    ComplianceProfile.australia => 'australia',
+  };
 }
 
 final class AttributeRule {
@@ -172,10 +172,7 @@ final class ConsentTelemetryEvent {
     }
     if (attributes.values.any(
       (value) =>
-          value != null &&
-          value is! String &&
-          value is! num &&
-          value is! bool,
+          value != null && value is! String && value is! num && value is! bool,
     )) {
       throw ArgumentError('Telemetry attributes must be JSON scalars.');
     }
@@ -193,17 +190,16 @@ final class ConsentTelemetryEvent {
   final String? sessionId;
 
   Map<String, Object?> toJson() => <String, Object?>{
-        'contractVersion': contractVersion,
-        'eventId': eventId,
-        'eventName': eventName,
-        'purpose': purpose.wireName,
-        'dataClasses': dataClasses.map((value) => value.wireName).toList()
-          ..sort(),
-        'attributes': attributes,
-        'occurredAt': occurredAt.toUtc().toIso8601String(),
-        'subjectKey': subjectKey,
-        'sessionId': sessionId,
-      };
+    'contractVersion': contractVersion,
+    'eventId': eventId,
+    'eventName': eventName,
+    'purpose': purpose.wireName,
+    'dataClasses': dataClasses.map((value) => value.wireName).toList()..sort(),
+    'attributes': attributes,
+    'occurredAt': occurredAt.toUtc().toIso8601String(),
+    'subjectKey': subjectKey,
+    'sessionId': sessionId,
+  };
 
   factory ConsentTelemetryEvent.fromJson(Map<String, Object?> json) =>
       ConsentTelemetryEvent(
@@ -261,34 +257,34 @@ final class ConsentReceipt {
   final DateTime? expiresAt;
 
   Map<String, Object?> toJson() => <String, Object?>{
-        'subjectKey': subjectKey,
-        'purpose': purpose.wireName,
-        'state': state.wireName,
-        'policyVersion': policyVersion,
-        'noticeVersion': noticeVersion,
-        'decidedAt': decidedAt.toUtc().toIso8601String(),
-        'source': source.wireName,
-        'expiresAt': expiresAt?.toUtc().toIso8601String(),
-      };
+    'subjectKey': subjectKey,
+    'purpose': purpose.wireName,
+    'state': state.wireName,
+    'policyVersion': policyVersion,
+    'noticeVersion': noticeVersion,
+    'decidedAt': decidedAt.toUtc().toIso8601String(),
+    'source': source.wireName,
+    'expiresAt': expiresAt?.toUtc().toIso8601String(),
+  };
 
   factory ConsentReceipt.fromJson(Map<String, Object?> json) => ConsentReceipt(
-        subjectKey: json['subjectKey']! as String,
-        purpose: TelemetryPurpose.values.singleWhere(
-          (value) => value.wireName == json['purpose'],
-        ),
-        state: ConsentState.values.singleWhere(
-          (value) => value.wireName == json['state'],
-        ),
-        policyVersion: json['policyVersion']! as String,
-        noticeVersion: json['noticeVersion']! as String,
-        decidedAt: DateTime.parse(json['decidedAt']! as String),
-        source: ConsentSource.values.singleWhere(
-          (value) => value.wireName == json['source'],
-        ),
-        expiresAt: json['expiresAt'] == null
-            ? null
-            : DateTime.parse(json['expiresAt']! as String),
-      );
+    subjectKey: json['subjectKey']! as String,
+    purpose: TelemetryPurpose.values.singleWhere(
+      (value) => value.wireName == json['purpose'],
+    ),
+    state: ConsentState.values.singleWhere(
+      (value) => value.wireName == json['state'],
+    ),
+    policyVersion: json['policyVersion']! as String,
+    noticeVersion: json['noticeVersion']! as String,
+    decidedAt: DateTime.parse(json['decidedAt']! as String),
+    source: ConsentSource.values.singleWhere(
+      (value) => value.wireName == json['source'],
+    ),
+    expiresAt: json['expiresAt'] == null
+        ? null
+        : DateTime.parse(json['expiresAt']! as String),
+  );
 }
 
 final class PrivacySignals {
@@ -314,25 +310,49 @@ abstract interface class ConsentTelemetrySink {
     ConsentTelemetryEvent event, {
     required int retentionDays,
   });
-  FutureOr<void> purge(
-    String subjectKey,
-    Set<TelemetryPurpose> purposes,
-  );
+  FutureOr<void> purge(String subjectKey, Set<TelemetryPurpose> purposes);
 }
 
 const Map<TelemetryPurpose, int> defaultTelemetryRetentionDays =
     <TelemetryPurpose, int>{
-  TelemetryPurpose.reliability: 30,
-  TelemetryPurpose.productAnalytics: 90,
-  TelemetryPurpose.productImprovement: 90,
-  TelemetryPurpose.personalization: 30,
-  TelemetryPurpose.commercialInsights: 30,
-};
+      TelemetryPurpose.reliability: 30,
+      TelemetryPurpose.productAnalytics: 90,
+      TelemetryPurpose.productImprovement: 90,
+      TelemetryPurpose.personalization: 30,
+      TelemetryPurpose.commercialInsights: 30,
+    };
 
 const Set<String> _euEeaCodes = <String>{
-  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR',
-  'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK',
-  'SI', 'ES', 'SE', 'IS', 'LI', 'NO',
+  'AT',
+  'BE',
+  'BG',
+  'HR',
+  'CY',
+  'CZ',
+  'DK',
+  'EE',
+  'FI',
+  'FR',
+  'DE',
+  'GR',
+  'HU',
+  'IE',
+  'IT',
+  'LV',
+  'LT',
+  'LU',
+  'MT',
+  'NL',
+  'PL',
+  'PT',
+  'RO',
+  'SK',
+  'SI',
+  'ES',
+  'SE',
+  'IS',
+  'LI',
+  'NO',
 };
 
 final class ConsentTelemetryPolicy {
@@ -412,15 +432,35 @@ final class ConsentTelemetryPolicy {
 }
 
 const List<String> _forbiddenAttributeFragments = <String>[
-  'password', 'secret', 'token', 'authorization', 'cookie', 'email', 'phone',
-  'address', 'name', 'message', 'stack', 'traceback', 'content', 'payload',
-  'title', 'note', 'url', 'query', 'latitude', 'longitude', 'location',
-  'contact', 'credential', 'ip_address', 'user_id',
+  'password',
+  'secret',
+  'token',
+  'authorization',
+  'cookie',
+  'email',
+  'phone',
+  'address',
+  'name',
+  'message',
+  'stack',
+  'traceback',
+  'content',
+  'payload',
+  'title',
+  'note',
+  'url',
+  'query',
+  'latitude',
+  'longitude',
+  'location',
+  'contact',
+  'credential',
+  'ip_address',
+  'user_id',
 ];
 
 final class TelemetryEventRegistry {
-  final Map<String, TelemetryEventSpec> _specs =
-      <String, TelemetryEventSpec>{};
+  final Map<String, TelemetryEventSpec> _specs = <String, TelemetryEventSpec>{};
 
   void register(TelemetryEventSpec spec) {
     if (_specs.containsKey(spec.name)) {
@@ -447,11 +487,11 @@ final class ConsentGatedTelemetry {
     required ConsentStore consents,
     required ConsentTelemetrySink sink,
     required Clock clock,
-  })  : _policy = policy,
-        _registry = registry,
-        _consents = consents,
-        _sink = sink,
-        _clock = clock;
+  }) : _policy = policy,
+       _registry = registry,
+       _consents = consents,
+       _sink = sink,
+       _clock = clock;
 
   final ConsentTelemetryPolicy _policy;
   final TelemetryEventRegistry _registry;
@@ -479,8 +519,8 @@ final class ConsentGatedTelemetry {
         return CollectionOutcome.droppedNoConsent;
       }
     }
-    final retention = spec.retentionDays <
-            _policy.maximumRetentionDays[event.purpose]!
+    final retention =
+        spec.retentionDays < _policy.maximumRetentionDays[event.purpose]!
         ? spec.retentionDays
         : _policy.maximumRetentionDays[event.purpose]!;
     try {
@@ -509,20 +549,13 @@ final class ConsentGatedTelemetry {
         receipt.expiresAt!.isAfter(_clock.nowUtc());
   }
 
-  bool _blockedBySignal(
-    TelemetryPurpose purpose,
-    PrivacySignals signals,
-  ) {
+  bool _blockedBySignal(TelemetryPurpose purpose, PrivacySignals signals) {
     if (purpose != TelemetryPurpose.commercialInsights) return false;
     return signals.doNotSellOrShare ||
-        (_policy.honorGlobalPrivacyControl &&
-            signals.globalPrivacyControl);
+        (_policy.honorGlobalPrivacyControl && signals.globalPrivacyControl);
   }
 
-  bool _validEvent(
-    ConsentTelemetryEvent event,
-    TelemetryEventSpec spec,
-  ) {
+  bool _validEvent(ConsentTelemetryEvent event, TelemetryEventSpec spec) {
     if (event.purpose != spec.purpose ||
         !_sameSet(event.dataClasses, spec.dataClasses) ||
         !_sameSet(
@@ -570,7 +603,8 @@ final class InMemoryConsentTelemetrySink implements ConsentTelemetrySink {
   @override
   void purge(String subjectKey, Set<TelemetryPurpose> purposes) {
     events.removeWhere(
-      (item) => item.$1.subjectKey == subjectKey &&
+      (item) =>
+          item.$1.subjectKey == subjectKey &&
           purposes.contains(item.$1.purpose),
     );
     purges.add((subjectKey, Set<TelemetryPurpose>.unmodifiable(purposes)));

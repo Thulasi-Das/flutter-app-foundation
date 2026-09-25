@@ -23,13 +23,13 @@ final class LogEvent {
   final String? traceId;
 
   Map<String, Object?> toJson() => <String, Object?>{
-        'timestamp': timestamp.toUtc().toIso8601String(),
-        'level': level.name,
-        'code': code,
-        if (correlationId != null) 'correlationId': correlationId,
-        if (traceId != null) 'traceId': traceId,
-        'attributes': attributes,
-      };
+    'timestamp': timestamp.toUtc().toIso8601String(),
+    'level': level.name,
+    'code': code,
+    if (correlationId != null) 'correlationId': correlationId,
+    if (traceId != null) 'traceId': traceId,
+    'attributes': attributes,
+  };
 }
 
 abstract interface class LogSink {
@@ -37,9 +37,7 @@ abstract interface class LogSink {
 }
 
 final class RedactionPolicy {
-  const RedactionPolicy({
-    this.allowedAttributeKeys = _safeDefaults,
-  });
+  const RedactionPolicy({this.allowedAttributeKeys = _safeDefaults});
 
   static const Set<String> _safeDefaults = <String>{
     'appVersion',
@@ -83,9 +81,9 @@ final class StructuredLogger {
     required LogSink sink,
     required Clock clock,
     RedactionPolicy redaction = const RedactionPolicy(),
-  })  : _sink = sink,
-        _clock = clock,
-        _redaction = redaction;
+  }) : _sink = sink,
+       _clock = clock,
+       _redaction = redaction;
 
   final LogSink _sink;
   final Clock _clock;
@@ -99,14 +97,16 @@ final class StructuredLogger {
     String? traceId,
   }) {
     if (!_validCode(code)) throw ArgumentError.value(code, 'code');
-    return _sink.write(LogEvent(
-      timestamp: _clock.nowUtc(),
-      level: level,
-      code: code,
-      attributes: _redaction.sanitize(attributes),
-      correlationId: correlationId,
-      traceId: traceId,
-    ));
+    return _sink.write(
+      LogEvent(
+        timestamp: _clock.nowUtc(),
+        level: level,
+        code: code,
+        attributes: _redaction.sanitize(attributes),
+        correlationId: correlationId,
+        traceId: traceId,
+      ),
+    );
   }
 
   bool _validCode(String code) =>
@@ -118,13 +118,17 @@ final class InMemoryLogSink implements LogSink {
   @override
   void write(LogEvent event) => events.add(event);
 
-  String diagnosticExport() => const JsonEncoder.withIndent('  ').convert(
-        events.map((event) => event.toJson()).toList(growable: false),
-      );
+  String diagnosticExport() => const JsonEncoder.withIndent(
+    '  ',
+  ).convert(events.map((event) => event.toJson()).toList(growable: false));
 }
 
 abstract interface class Telemetry {
-  FutureOr<void> counter(String name, int value, Map<String, Object?> attributes);
+  FutureOr<void> counter(
+    String name,
+    int value,
+    Map<String, Object?> attributes,
+  );
   FutureOr<void> timing(
     String name,
     Duration duration,
@@ -144,7 +148,11 @@ final class NoopTelemetry implements Telemetry {
   @override
   void counter(String name, int value, Map<String, Object?> attributes) {}
   @override
-  void timing(String name, Duration duration, Map<String, Object?> attributes) {}
+  void timing(
+    String name,
+    Duration duration,
+    Map<String, Object?> attributes,
+  ) {}
   @override
   TelemetrySpan startSpan(String name, Map<String, Object?> attributes) =>
       const _NoopSpan();

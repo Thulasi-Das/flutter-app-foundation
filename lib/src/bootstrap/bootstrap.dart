@@ -49,11 +49,9 @@ final class StopwatchClock implements MonotonicClock {
 }
 
 final class BootstrapCoordinator {
-  BootstrapCoordinator(
-    List<StartupStep> steps, {
-    MonotonicClock? clock,
-  })  : _steps = List<StartupStep>.unmodifiable(steps),
-        _clock = clock ?? StopwatchClock();
+  BootstrapCoordinator(List<StartupStep> steps, {MonotonicClock? clock})
+    : _steps = List<StartupStep>.unmodifiable(steps),
+      _clock = clock ?? StopwatchClock();
 
   final List<StartupStep> _steps;
   final MonotonicClock _clock;
@@ -75,29 +73,35 @@ final class BootstrapCoordinator {
   Future<BootstrapSnapshot> _run() async {
     final start = _clock.now();
     for (final step in _steps) {
-      _emit(BootstrapSnapshot(
-        phase: BootstrapPhase.running,
-        activeStepId: step.id,
-        elapsed: _clock.now() - start,
-      ));
+      _emit(
+        BootstrapSnapshot(
+          phase: BootstrapPhase.running,
+          activeStepId: step.id,
+          elapsed: _clock.now() - start,
+        ),
+      );
       try {
         await step.run();
       } on Object catch (error) {
         if (step.required) {
-          _emit(BootstrapSnapshot(
-            phase: BootstrapPhase.failed,
-            activeStepId: step.id,
-            failure: BootstrapFailure(stepId: step.id, error: error),
-            elapsed: _clock.now() - start,
-          ));
+          _emit(
+            BootstrapSnapshot(
+              phase: BootstrapPhase.failed,
+              activeStepId: step.id,
+              failure: BootstrapFailure(stepId: step.id, error: error),
+              elapsed: _clock.now() - start,
+            ),
+          );
           return _snapshot;
         }
       }
     }
-    _emit(BootstrapSnapshot(
-      phase: BootstrapPhase.ready,
-      elapsed: _clock.now() - start,
-    ));
+    _emit(
+      BootstrapSnapshot(
+        phase: BootstrapPhase.ready,
+        elapsed: _clock.now() - start,
+      ),
+    );
     return _snapshot;
   }
 

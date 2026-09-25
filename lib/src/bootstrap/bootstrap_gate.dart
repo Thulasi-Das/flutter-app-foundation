@@ -28,28 +28,27 @@ final class _BootstrapGateState extends State<BootstrapGate> {
 
   @override
   Widget build(BuildContext context) => StreamBuilder<BootstrapSnapshot>(
-        stream: widget.coordinator.snapshots,
-        initialData: widget.coordinator.snapshot,
-        builder: (context, asyncSnapshot) {
-          final snapshot = asyncSnapshot.data!;
-          return switch (snapshot.phase) {
-            BootstrapPhase.ready => widget.child,
-            BootstrapPhase.failed => FoundationStateView(
-                state: FoundationViewState.error,
-                title: 'Could not start the app',
-                message: 'Startup step ${snapshot.failure?.stepId} failed.',
-                actionLabel: 'Try again',
-                onAction: () => unawaited(widget.coordinator.retry()),
-              ),
-            BootstrapPhase.idle || BootstrapPhase.running =>
-              FoundationStateView(
-                state: FoundationViewState.loading,
-                title: 'Starting',
-                message: snapshot.activeStepId == null
-                    ? 'Preparing the app.'
-                    : 'Preparing ${snapshot.activeStepId}.',
-              ),
-          };
-        },
-      );
+    stream: widget.coordinator.snapshots,
+    initialData: widget.coordinator.snapshot,
+    builder: (context, asyncSnapshot) {
+      final snapshot = asyncSnapshot.data!;
+      return switch (snapshot.phase) {
+        BootstrapPhase.ready => widget.child,
+        BootstrapPhase.failed => FoundationStateView(
+          state: FoundationViewState.error,
+          title: 'Could not start the app',
+          message: 'Startup step ${snapshot.failure?.stepId} failed.',
+          actionLabel: 'Try again',
+          onAction: () => unawaited(widget.coordinator.retry()),
+        ),
+        BootstrapPhase.idle || BootstrapPhase.running => FoundationStateView(
+          state: FoundationViewState.loading,
+          title: 'Starting',
+          message: snapshot.activeStepId == null
+              ? 'Preparing the app.'
+              : 'Preparing ${snapshot.activeStepId}.',
+        ),
+      };
+    },
+  );
 }

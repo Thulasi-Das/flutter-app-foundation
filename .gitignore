@@ -16,3 +16,5 @@ example/linux/
 example/macos/
 example/web/
 example/windows/
+pubspec.lock
+example/pubspec.lock

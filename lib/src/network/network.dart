@@ -6,14 +6,13 @@ enum HttpMethod { get, post, put, patch, delete, head, options }
 
 extension HttpMethodProperties on HttpMethod {
   bool get isNaturallyIdempotent => switch (this) {
-        HttpMethod.get ||
-        HttpMethod.put ||
-        HttpMethod.delete ||
-        HttpMethod.head ||
-        HttpMethod.options =>
-          true,
-        HttpMethod.post || HttpMethod.patch => false,
-      };
+    HttpMethod.get ||
+    HttpMethod.put ||
+    HttpMethod.delete ||
+    HttpMethod.head ||
+    HttpMethod.options => true,
+    HttpMethod.post || HttpMethod.patch => false,
+  };
 }
 
 final class CancellationToken {
@@ -48,10 +47,7 @@ final class NetworkRequest {
   final Duration timeout;
   final CancellationToken? cancellation;
 
-  NetworkRequest copyWith({
-    Map<String, String>? headers,
-    Duration? timeout,
-  }) =>
+  NetworkRequest copyWith({Map<String, String>? headers, Duration? timeout}) =>
       NetworkRequest(
         method: method,
         uri: uri,
@@ -119,7 +115,9 @@ final class ApiFailure implements Exception {
     required String fallbackCorrelationId,
   }) {
     final body = response.body;
-    final json = body is Map<String, Object?> ? body : const <String, Object?>{};
+    final json = body is Map<String, Object?>
+        ? body
+        : const <String, Object?>{};
     final correlationId = json['correlationId'] is String
         ? json['correlationId']! as String
         : response.headers['X-Correlation-ID'] ?? fallbackCorrelationId;
@@ -139,9 +137,7 @@ final class ApiFailure implements Exception {
         : status == 429 || status >= 500;
     return ApiFailure(
       kind: kind,
-      code: json['code'] is String
-          ? json['code']! as String
-          : 'http_$status',
+      code: json['code'] is String ? json['code']! as String : 'http_$status',
       message: json['message'] is String
           ? json['message']! as String
           : 'The request could not be completed.',
@@ -163,12 +159,12 @@ final class ApiFailure implements Exception {
   final Map<String, Object?>? details;
 
   Map<String, Object?> toJson() => <String, Object?>{
-        'code': code,
-        'message': message,
-        'correlationId': correlationId,
-        if (details != null) 'details': details,
-        'retryable': retryable,
-      };
+    'code': code,
+    'message': message,
+    'correlationId': correlationId,
+    if (details != null) 'details': details,
+    'retryable': retryable,
+  };
 }
 
 abstract interface class Delay {
@@ -204,7 +200,8 @@ final class RetryPolicy {
   final Duration maximumDelay;
 
   bool mayRetry(NetworkRequest request, ApiFailure failure, int attempt) {
-    final safeWrite = request.method.isNaturallyIdempotent ||
+    final safeWrite =
+        request.method.isNaturallyIdempotent ||
         (request.idempotencyKey?.isNotEmpty ?? false);
     return attempt < maxAttempts && safeWrite && failure.retryable;
   }
@@ -228,8 +225,8 @@ final class NetworkClient {
     this.retryPolicy = const RetryPolicy(),
     this.delay = const TimerDelay(),
     this.jitter = const NoJitter(),
-  })  : _transport = transport,
-        _ids = ids;
+  }) : _transport = transport,
+       _ids = ids;
 
   final NetworkTransport _transport;
   final IdGenerator _ids;
@@ -243,19 +240,23 @@ final class NetworkClient {
   Future<NetworkResponse> send(NetworkRequest request) async {
     final correlationId = request.headers['X-Correlation-ID'] ?? _ids.next();
     final token = await accessTokens?.accessToken();
-    final effective = request.copyWith(headers: <String, String>{
-      ...request.headers,
-      'X-Correlation-ID': correlationId,
-      if (request.idempotencyKey case final key?) 'Idempotency-Key': key,
-      if (token != null) 'Authorization': 'Bearer $token',
-      if (locales != null) 'Accept-Language': locales!.localeTag(),
-      if (appVersion != null) 'X-App-Version': appVersion!,
-    });
+    final effective = request.copyWith(
+      headers: <String, String>{
+        ...request.headers,
+        'X-Correlation-ID': correlationId,
+        if (request.idempotencyKey case final key?) 'Idempotency-Key': key,
+        if (token != null) 'Authorization': 'Bearer $token',
+        if (locales != null) 'Accept-Language': locales!.localeTag(),
+        if (appVersion != null) 'X-App-Version': appVersion!,
+      },
+    );
 
     for (var attempt = 1; attempt <= retryPolicy.maxAttempts; attempt++) {
       effective.cancellation?.throwIfCancelled();
       try {
-        final response = await _transport.send(effective).timeout(
+        final response = await _transport
+            .send(effective)
+            .timeout(
               effective.timeout,
               onTimeout: () => throw ApiFailure(
                 kind: ApiFailureKind.timeout,

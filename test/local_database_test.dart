@@ -7,12 +7,14 @@ void main() {
 
     await expectLater(
       database.transaction<void>((tx) {
-        tx.put(const StoredRecord(
-          table: 'items',
-          id: 'one',
-          values: <String, Object?>{'safe': true},
-          version: 1,
-        ));
+        tx.put(
+          const StoredRecord(
+            table: 'items',
+            id: 'one',
+            values: <String, Object?>{'safe': true},
+            version: 1,
+          ),
+        );
         throw StateError('rollback');
       }),
       throwsStateError,
@@ -26,8 +28,8 @@ void main() {
   test('migration plan rejects gaps', () {
     expect(
       () => MigrationPlan(<DatabaseMigration>[
-        _Migration(0, 1),
-        _Migration(2, 3),
+        const _Migration(0, 1),
+        const _Migration(2, 3),
       ]),
       throwsArgumentError,
     );
@@ -36,8 +38,8 @@ void main() {
   test('database migrates along continuous path', () async {
     final database = InMemoryLocalDatabase();
     final plan = MigrationPlan(<DatabaseMigration>[
-      _Migration(0, 1),
-      _Migration(1, 2),
+      const _Migration(0, 1),
+      const _Migration(1, 2),
     ]);
     await database.migrate(plan, 2);
     expect(database.schemaVersion, 2);

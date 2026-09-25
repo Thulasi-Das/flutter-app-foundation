@@ -5,7 +5,7 @@ import 'workspace_storage.dart';
 
 final class LocalFileWorkspaceStore implements WorkspaceStore {
   LocalFileWorkspaceStore(this.descriptor, Directory root)
-      : _root = Directory('${root.path}/${_safeName(descriptor.workspaceId)}') {
+    : _root = Directory('${root.path}/${_safeName(descriptor.workspaceId)}') {
     _root.createSync(recursive: true);
   }
 
@@ -14,12 +14,10 @@ final class LocalFileWorkspaceStore implements WorkspaceStore {
   final Directory _root;
 
   @override
-  final StoreCapabilities capabilities =
-      const StoreCapabilities(offline: true);
+  final StoreCapabilities capabilities = const StoreCapabilities(offline: true);
 
-  static String _safeName(String value) => base64Url
-      .encode(utf8.encode(value))
-      .replaceAll('=', '');
+  static String _safeName(String value) =>
+      base64Url.encode(utf8.encode(value)).replaceAll('=', '');
 
   File _file(String collection, String recordId) {
     final directory = Directory('${_root.path}/${_safeName(collection)}')
@@ -54,7 +52,8 @@ final class LocalFileWorkspaceStore implements WorkspaceStore {
           jsonDecode(await entity.readAsString()) as Map,
         ),
       );
-      final matches = (query.includeDeleted || !record.deleted) &&
+      final matches =
+          (query.includeDeleted || !record.deleted) &&
           query.filters.entries.every(
             (filter) => record.values[filter.key] == filter.value,
           );

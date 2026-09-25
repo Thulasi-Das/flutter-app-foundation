@@ -7,65 +7,61 @@ void main() {
   const subject = 'pseudonymous-installation-key';
 
   TelemetryEventSpec reliabilitySpec() => TelemetryEventSpec(
-        name: 'app.exception',
-        purpose: TelemetryPurpose.reliability,
-        dataClasses: <TelemetryDataClass>{
-          TelemetryDataClass.operationalMetadata,
-          TelemetryDataClass.errorDiagnostic,
-        },
-        attributes: const <String, AttributeRule>{
-          'exceptionType': AttributeRule(
-            AttributeKind.string,
-            maxLength: 64,
-          ),
-          'errorCode': AttributeRule(AttributeKind.string, maxLength: 64),
-          'handled': AttributeRule(AttributeKind.boolean),
-          'appVersion': AttributeRule(AttributeKind.string, maxLength: 32),
-        },
-        retentionDays: 60,
-      );
+    name: 'app.exception',
+    purpose: TelemetryPurpose.reliability,
+    dataClasses: <TelemetryDataClass>{
+      TelemetryDataClass.operationalMetadata,
+      TelemetryDataClass.errorDiagnostic,
+    },
+    attributes: const <String, AttributeRule>{
+      'exceptionType': AttributeRule(AttributeKind.string, maxLength: 64),
+      'errorCode': AttributeRule(AttributeKind.string, maxLength: 64),
+      'handled': AttributeRule(AttributeKind.boolean),
+      'appVersion': AttributeRule(AttributeKind.string, maxLength: 32),
+    },
+    retentionDays: 60,
+  );
 
   ConsentTelemetryEvent reliabilityEvent() => ConsentTelemetryEvent(
-        eventId: 'event-1',
-        eventName: 'app.exception',
-        purpose: TelemetryPurpose.reliability,
-        dataClasses: <TelemetryDataClass>{
-          TelemetryDataClass.operationalMetadata,
-          TelemetryDataClass.errorDiagnostic,
-        },
-        attributes: const <String, Object?>{
-          'exceptionType': 'StateError',
-          'errorCode': 'cache_unavailable',
-          'handled': true,
-          'appVersion': '1.2.3',
-        },
-        occurredAt: now,
-        subjectKey: subject,
-      );
+    eventId: 'event-1',
+    eventName: 'app.exception',
+    purpose: TelemetryPurpose.reliability,
+    dataClasses: <TelemetryDataClass>{
+      TelemetryDataClass.operationalMetadata,
+      TelemetryDataClass.errorDiagnostic,
+    },
+    attributes: const <String, Object?>{
+      'exceptionType': 'StateError',
+      'errorCode': 'cache_unavailable',
+      'handled': true,
+      'appVersion': '1.2.3',
+    },
+    occurredAt: now,
+    subjectKey: subject,
+  );
 
   ConsentReceipt receipt(
     TelemetryPurpose purpose, [
     ConsentState state = ConsentState.granted,
-  ]) =>
-      ConsentReceipt(
-        subjectKey: subject,
-        purpose: purpose,
-        state: state,
-        policyVersion: 'privacy-3',
-        noticeVersion: 'notice-5',
-        decidedAt: now,
-        source: ConsentSource.privacySettings,
-        expiresAt: now.add(const Duration(days: 180)),
-      );
+  ]) => ConsentReceipt(
+    subjectKey: subject,
+    purpose: purpose,
+    state: state,
+    policyVersion: 'privacy-3',
+    noticeVersion: 'notice-5',
+    decidedAt: now,
+    source: ConsentSource.privacySettings,
+    expiresAt: now.add(const Duration(days: 180)),
+  );
 
   test('wire values match Django telemetry contract', () {
     final event = reliabilityEvent().toJson();
     expect(event['contractVersion'], '1.0');
     expect(event['purpose'], 'reliability');
-    expect(
-      event['dataClasses'],
-      <String>['error_diagnostic', 'operational_metadata'],
-    );
+    expect(event['dataClasses'], <String>[
+      'error_diagnostic',
+      'operational_metadata',
+    ]);
     expect(
       receipt(TelemetryPurpose.productAnalytics).toJson()['purpose'],
       'product_analytics',
@@ -180,58 +176,60 @@ void main() {
     );
   });
 
-  test('California profile blocks commercial event on privacy signal',
-      () async {
-    final spec = TelemetryEventSpec(
-      name: 'commercial.eligibility_evaluated',
-      purpose: TelemetryPurpose.commercialInsights,
-      dataClasses: <TelemetryDataClass>{
-        TelemetryDataClass.accountContext,
-        TelemetryDataClass.commercialProfile,
-      },
-      attributes: const <String, AttributeRule>{
-        'featureKey': AttributeRule(AttributeKind.string),
-        'tierBand': AttributeRule(AttributeKind.string),
-        'eligible': AttributeRule(AttributeKind.boolean),
-      },
-      retentionDays: 30,
-    );
-    final registry = TelemetryEventRegistry()..register(spec);
-    final consents = InMemoryConsentStore()
-      ..save(receipt(TelemetryPurpose.commercialInsights));
-    final collector = ConsentGatedTelemetry(
-      policy: ConsentTelemetryPolicy.forCountry(
-        'US-CA',
-        policyVersion: 'privacy-3',
-        noticeVersion: 'notice-5',
-        enableCommercialInsights: true,
-      ),
-      registry: registry,
-      consents: consents,
-      sink: InMemoryConsentTelemetrySink(),
-      clock: FakeClock(now),
-    );
-    final event = ConsentTelemetryEvent(
-      eventId: 'event-commercial-1',
-      eventName: spec.name,
-      purpose: spec.purpose,
-      dataClasses: spec.dataClasses,
-      attributes: const <String, Object?>{
-        'featureKey': 'advanced_reports',
-        'tierBand': 'starter',
-        'eligible': true,
-      },
-      occurredAt: now,
-      subjectKey: subject,
-    );
-    expect(
-      await collector.record(
-        event,
-        privacySignals: const PrivacySignals(globalPrivacyControl: true),
-      ),
-      CollectionOutcome.droppedPrivacySignal,
-    );
-  });
+  test(
+    'California profile blocks commercial event on privacy signal',
+    () async {
+      final spec = TelemetryEventSpec(
+        name: 'commercial.eligibility_evaluated',
+        purpose: TelemetryPurpose.commercialInsights,
+        dataClasses: <TelemetryDataClass>{
+          TelemetryDataClass.accountContext,
+          TelemetryDataClass.commercialProfile,
+        },
+        attributes: const <String, AttributeRule>{
+          'featureKey': AttributeRule(AttributeKind.string),
+          'tierBand': AttributeRule(AttributeKind.string),
+          'eligible': AttributeRule(AttributeKind.boolean),
+        },
+        retentionDays: 30,
+      );
+      final registry = TelemetryEventRegistry()..register(spec);
+      final consents = InMemoryConsentStore()
+        ..save(receipt(TelemetryPurpose.commercialInsights));
+      final collector = ConsentGatedTelemetry(
+        policy: ConsentTelemetryPolicy.forCountry(
+          'US-CA',
+          policyVersion: 'privacy-3',
+          noticeVersion: 'notice-5',
+          enableCommercialInsights: true,
+        ),
+        registry: registry,
+        consents: consents,
+        sink: InMemoryConsentTelemetrySink(),
+        clock: FakeClock(now),
+      );
+      final event = ConsentTelemetryEvent(
+        eventId: 'event-commercial-1',
+        eventName: spec.name,
+        purpose: spec.purpose,
+        dataClasses: spec.dataClasses,
+        attributes: const <String, Object?>{
+          'featureKey': 'advanced_reports',
+          'tierBand': 'starter',
+          'eligible': true,
+        },
+        occurredAt: now,
+        subjectKey: subject,
+      );
+      expect(
+        await collector.record(
+          event,
+          privacySignals: const PrivacySignals(globalPrivacyControl: true),
+        ),
+        CollectionOutcome.droppedPrivacySignal,
+      );
+    },
+  );
 
   test('commercial insights are disabled by every default profile', () {
     for (final profile in ComplianceProfile.values) {

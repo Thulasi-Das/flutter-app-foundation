@@ -32,11 +32,7 @@ final class AuthTokens {
 }
 
 final class AuthSnapshot {
-  const AuthSnapshot({
-    required this.status,
-    this.subject,
-    this.errorCode,
-  });
+  const AuthSnapshot({required this.status, this.subject, this.errorCode});
 
   final AuthStatus status;
   final String? subject;
@@ -62,7 +58,9 @@ final class SecureTokenStore implements TokenStore {
     if (encoded == null) return null;
     try {
       final value = jsonDecode(encoded) as Map<String, Object?>;
-      final parsedExpiry = DateTime.parse(value['accessTokenExpiresAt']! as String);
+      final parsedExpiry = DateTime.parse(
+        value['accessTokenExpiresAt']! as String,
+      );
       return AuthTokens(
         accessToken: value['accessToken']! as String,
         refreshToken: value['refreshToken']! as String,
@@ -82,8 +80,9 @@ final class SecureTokenStore implements TokenStore {
       jsonEncode(<String, Object?>{
         'accessToken': tokens.accessToken,
         'refreshToken': tokens.refreshToken,
-        'accessTokenExpiresAt':
-            tokens.accessTokenExpiresAt.toUtc().toIso8601String(),
+        'accessTokenExpiresAt': tokens.accessTokenExpiresAt
+            .toUtc()
+            .toIso8601String(),
         if (tokens.idToken != null) 'idToken': tokens.idToken,
       }),
     );
@@ -132,10 +131,10 @@ final class AuthCoordinator {
     required Clock clock,
     SubjectReader? subjectReader,
     this.refreshLeeway = const Duration(minutes: 2),
-  })  : _oidc = oidc,
-        _tokenStore = tokenStore,
-        _clock = clock,
-        _subjectReader = subjectReader;
+  }) : _oidc = oidc,
+       _tokenStore = tokenStore,
+       _clock = clock,
+       _subjectReader = subjectReader;
 
   final OidcClient _oidc;
   final TokenStore _tokenStore;
@@ -153,9 +152,13 @@ final class AuthCoordinator {
   Future<AuthSnapshot> restore({bool localOnlyWhenEmpty = true}) async {
     final tokens = await _tokenStore.read();
     if (tokens == null) {
-      _emit(AuthSnapshot(
-        status: localOnlyWhenEmpty ? AuthStatus.localOnly : AuthStatus.signedOut,
-      ));
+      _emit(
+        AuthSnapshot(
+          status: localOnlyWhenEmpty
+              ? AuthStatus.localOnly
+              : AuthStatus.signedOut,
+        ),
+      );
       return _snapshot;
     }
     final current = await validTokens();
@@ -173,16 +176,18 @@ final class AuthCoordinator {
       _authenticated(tokens);
       return tokens;
     } on Object {
-      _emit(const AuthSnapshot(
-        status: AuthStatus.signedOut,
-        errorCode: 'authorization_failed',
-      ));
+      _emit(
+        const AuthSnapshot(
+          status: AuthStatus.signedOut,
+          errorCode: 'authorization_failed',
+        ),
+      );
       rethrow;
     }
   }
 
-  Future<AuthTokens?> validTokens() => _activeTokenRequest ??=
-      _readOrRefresh().whenComplete(() => _activeTokenRequest = null);
+  Future<AuthTokens?> validTokens() => _activeTokenRequest ??= _readOrRefresh()
+      .whenComplete(() => _activeTokenRequest = null);
 
   Future<AuthTokens?> _readOrRefresh() async {
     final tokens = await _tokenStore.read();
@@ -199,10 +204,12 @@ final class AuthCoordinator {
       return refreshed;
     } on Object {
       await _tokenStore.clear();
-      _emit(const AuthSnapshot(
-        status: AuthStatus.expired,
-        errorCode: 'refresh_failed',
-      ));
+      _emit(
+        const AuthSnapshot(
+          status: AuthStatus.expired,
+          errorCode: 'refresh_failed',
+        ),
+      );
       return null;
     }
   }
@@ -224,10 +231,12 @@ final class AuthCoordinator {
       _emit(const AuthSnapshot(status: AuthStatus.localOnly));
 
   void _authenticated(AuthTokens tokens) {
-    _emit(AuthSnapshot(
-      status: AuthStatus.authenticated,
-      subject: _subjectReader?.subject(tokens),
-    ));
+    _emit(
+      AuthSnapshot(
+        status: AuthStatus.authenticated,
+        subject: _subjectReader?.subject(tokens),
+      ),
+    );
   }
 
   void _emit(AuthSnapshot value) {

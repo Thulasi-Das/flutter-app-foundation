@@ -11,13 +11,18 @@ void main() {
       ids: SequentialIdGenerator(prefix: 'correlation'),
     );
 
-    await client.send(NetworkRequest(
-      method: HttpMethod.post,
-      uri: Uri.parse('https://api.example.test/mutations'),
-      idempotencyKey: 'mutation-1',
-    ));
+    await client.send(
+      NetworkRequest(
+        method: HttpMethod.post,
+        uri: Uri.parse('https://api.example.test/mutations'),
+        idempotencyKey: 'mutation-1',
+      ),
+    );
 
-    expect(transport.requests.single.headers['X-Correlation-ID'], 'correlation-1');
+    expect(
+      transport.requests.single.headers['X-Correlation-ID'],
+      'correlation-1',
+    );
     expect(transport.requests.single.headers['Idempotency-Key'], 'mutation-1');
   });
 
@@ -33,10 +38,12 @@ void main() {
       delay: delay,
     );
 
-    final result = await client.send(NetworkRequest(
-      method: HttpMethod.get,
-      uri: Uri.parse('https://api.example.test/items'),
-    ));
+    final result = await client.send(
+      NetworkRequest(
+        method: HttpMethod.get,
+        uri: Uri.parse('https://api.example.test/items'),
+      ),
+    );
 
     expect(result.statusCode, 200);
     expect(transport.requests, hasLength(2));
@@ -59,10 +66,12 @@ void main() {
     );
 
     await expectLater(
-      client.send(NetworkRequest(
-        method: HttpMethod.post,
-        uri: Uri.parse('https://api.example.test/items'),
-      )),
+      client.send(
+        NetworkRequest(
+          method: HttpMethod.post,
+          uri: Uri.parse('https://api.example.test/items'),
+        ),
+      ),
       throwsA(isA<ApiFailure>()),
     );
     expect(transport.requests, hasLength(1));

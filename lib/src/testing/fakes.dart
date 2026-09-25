@@ -14,7 +14,7 @@ final class RecordingDelay implements Delay {
 
 final class ScriptedNetworkTransport implements NetworkTransport {
   ScriptedNetworkTransport(Iterable<Object> script)
-      : _script = List<Object>.from(script);
+    : _script = List<Object>.from(script);
 
   final List<Object> _script;
   final List<NetworkRequest> requests = <NetworkRequest>[];
@@ -69,11 +69,13 @@ final class FakeRemoteSyncPort implements RemoteSyncPort {
     return onPush?.call(mutations) ??
         PushResult(
           acknowledgements: mutations
-              .map((mutation) => MutationAcknowledgement(
-                    mutationId: mutation.mutationId,
-                    disposition: PushDisposition.applied,
-                    authoritativeVersion: (mutation.baseVersion ?? 0) + 1,
-                  ))
+              .map(
+                (mutation) => MutationAcknowledgement(
+                  mutationId: mutation.mutationId,
+                  disposition: PushDisposition.applied,
+                  authoritativeVersion: (mutation.baseVersion ?? 0) + 1,
+                ),
+              )
               .toList(growable: false),
         );
   }
@@ -81,12 +83,12 @@ final class FakeRemoteSyncPort implements RemoteSyncPort {
   @override
   Future<ChangePage> pull(String workspaceId, String? cursor) async =>
       pullPages.isEmpty
-          ? const ChangePage(
-              changes: <PulledChange>[],
-              nextCursor: null,
-              hasMore: false,
-            )
-          : pullPages.removeAt(0);
+      ? const ChangePage(
+          changes: <PulledChange>[],
+          nextCursor: null,
+          hasMore: false,
+        )
+      : pullPages.removeAt(0);
 }
 
 /// Non-cryptographic checksum for deterministic tests only. Production code
@@ -116,15 +118,14 @@ final class InMemoryBackupSource implements BackupSource {
   Future<StagedRestore> stageRestore(
     Uint8List bytes,
     int sourceSchemaVersion,
-  ) async =>
-      _MemoryStagedRestore(
-        bytes: bytes,
-        onCommit: (restored) {
-          this.bytes = Uint8List.fromList(restored);
-          committed = true;
-        },
-        onDiscard: () => discarded = true,
-      );
+  ) async => _MemoryStagedRestore(
+    bytes: bytes,
+    onCommit: (restored) {
+      this.bytes = Uint8List.fromList(restored);
+      committed = true;
+    },
+    onDiscard: () => discarded = true,
+  );
 }
 
 final class _MemoryStagedRestore implements StagedRestore {

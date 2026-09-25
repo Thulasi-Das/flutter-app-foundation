@@ -47,32 +47,32 @@ final class FoundationTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-        textField: true,
-        label: label,
-        child: TextFormField(
-          controller: controller,
-          focusNode: focusNode,
-          enabled: enabled,
-          obscureText: obscureText,
-          keyboardType: keyboardType,
-          textInputAction: textInputAction,
-          autofillHints: autofillHints,
-          onChanged: onChanged,
-          onFieldSubmitted: onSubmitted,
-          validator: validator,
-          maxLines: obscureText ? 1 : maxLines,
-          minLines: minLines,
-          inputFormatters: inputFormatters,
-          decoration: InputDecoration(
-            labelText: label,
-            helperText: helperText,
-            errorText: errorText,
-            hintText: hintText,
-            prefixIcon: prefixIcon,
-            suffixIcon: suffixIcon,
-          ),
-        ),
-      );
+    textField: true,
+    label: label,
+    child: TextFormField(
+      controller: controller,
+      focusNode: focusNode,
+      enabled: enabled,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      autofillHints: autofillHints,
+      onChanged: onChanged,
+      onFieldSubmitted: onSubmitted,
+      validator: validator,
+      maxLines: obscureText ? 1 : maxLines,
+      minLines: minLines,
+      inputFormatters: inputFormatters,
+      decoration: InputDecoration(
+        labelText: label,
+        helperText: helperText,
+        errorText: errorText,
+        hintText: hintText,
+        prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon,
+      ),
+    ),
+  );
 }
 
 final class FoundationPasswordField extends StatefulWidget {
@@ -90,25 +90,27 @@ final class FoundationPasswordField extends StatefulWidget {
   final Iterable<String>? autofillHints;
 
   @override
-  State<FoundationPasswordField> createState() => _FoundationPasswordFieldState();
+  State<FoundationPasswordField> createState() =>
+      _FoundationPasswordFieldState();
 }
 
-final class _FoundationPasswordFieldState extends State<FoundationPasswordField> {
+final class _FoundationPasswordFieldState
+    extends State<FoundationPasswordField> {
   bool hidden = true;
 
   @override
   Widget build(BuildContext context) => FoundationTextField(
-        label: widget.label,
-        controller: widget.controller,
-        obscureText: hidden,
-        validator: widget.validator,
-        autofillHints: widget.autofillHints,
-        suffixIcon: IconButton(
-          tooltip: hidden ? 'Show password' : 'Hide password',
-          onPressed: () => setState(() => hidden = !hidden),
-          icon: Icon(hidden ? Icons.visibility : Icons.visibility_off),
-        ),
-      );
+    label: widget.label,
+    controller: widget.controller,
+    obscureText: hidden,
+    validator: widget.validator,
+    autofillHints: widget.autofillHints,
+    suffixIcon: IconButton(
+      tooltip: hidden ? 'Show password' : 'Hide password',
+      onPressed: () => setState(() => hidden = !hidden),
+      icon: Icon(hidden ? Icons.visibility : Icons.visibility_off),
+    ),
+  );
 }
 
 final class FoundationSearchField extends StatelessWidget {
@@ -127,20 +129,20 @@ final class FoundationSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => FoundationTextField(
-        label: label,
-        controller: controller,
-        keyboardType: TextInputType.text,
-        textInputAction: TextInputAction.search,
-        onChanged: onChanged,
-        prefixIcon: const Icon(Icons.search),
-        suffixIcon: onClear == null
-            ? null
-            : IconButton(
-                tooltip: 'Clear search',
-                onPressed: onClear,
-                icon: const Icon(Icons.close),
-              ),
-      );
+    label: label,
+    controller: controller,
+    keyboardType: TextInputType.text,
+    textInputAction: TextInputAction.search,
+    onChanged: onChanged,
+    prefixIcon: const Icon(Icons.search),
+    suffixIcon: onClear == null
+        ? null
+        : IconButton(
+            tooltip: 'Clear search',
+            onPressed: onClear,
+            icon: const Icon(Icons.close),
+          ),
+  );
 }
 
 final class FoundationNumberField extends StatelessWidget {
@@ -159,16 +161,16 @@ final class FoundationNumberField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => FoundationTextField(
-        label: label,
-        controller: controller,
-        keyboardType: TextInputType.numberWithOptions(decimal: allowDecimal),
-        inputFormatters: <TextInputFormatter>[
-          FilteringTextInputFormatter.allow(
-            allowDecimal ? RegExp(r'^\d*\.?\d*') : RegExp(r'^\d*'),
-          ),
-        ],
-        onChanged: (value) => onChanged?.call(num.tryParse(value)),
-      );
+    label: label,
+    controller: controller,
+    keyboardType: TextInputType.numberWithOptions(decimal: allowDecimal),
+    inputFormatters: <TextInputFormatter>[
+      FilteringTextInputFormatter.allow(
+        allowDecimal ? RegExp(r'^\d*\.?\d*') : RegExp(r'^\d*'),
+      ),
+    ],
+    onChanged: (value) => onChanged?.call(num.tryParse(value)),
+  );
 }
 
 final class FoundationSelect<T extends Object> extends StatelessWidget {
@@ -191,17 +193,21 @@ final class FoundationSelect<T extends Object> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DropdownButtonFormField<T>(
-        value: value,
-        isExpanded: true,
-        decoration: InputDecoration(labelText: label, helperText: helperText),
-        items: items
-            .map((item) => DropdownMenuItem<T>(
-                  value: item,
-                  child: Text(itemLabel(item), overflow: TextOverflow.ellipsis),
-                ))
-            .toList(growable: false),
-        onChanged: onChanged,
-      );
+    // Keyed by value so external value changes re-seed the field.
+    key: ValueKey<T?>(value),
+    initialValue: value,
+    isExpanded: true,
+    decoration: InputDecoration(labelText: label, helperText: helperText),
+    items: items
+        .map(
+          (item) => DropdownMenuItem<T>(
+            value: item,
+            child: Text(itemLabel(item), overflow: TextOverflow.ellipsis),
+          ),
+        )
+        .toList(growable: false),
+    onChanged: onChanged,
+  );
 }
 
 final class FoundationCheckbox extends StatelessWidget {
@@ -219,13 +225,13 @@ final class FoundationCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => CheckboxListTile(
-        contentPadding: EdgeInsets.zero,
-        title: Text(label),
-        subtitle: subtitle == null ? null : Text(subtitle!),
-        value: value,
-        onChanged: (next) => onChanged(next ?? false),
-        controlAffinity: ListTileControlAffinity.leading,
-      );
+    contentPadding: EdgeInsets.zero,
+    title: Text(label),
+    subtitle: subtitle == null ? null : Text(subtitle!),
+    value: value,
+    onChanged: (next) => onChanged(next ?? false),
+    controlAffinity: ListTileControlAffinity.leading,
+  );
 }
 
 final class FoundationRadioGroup<T extends Object> extends StatelessWidget {
@@ -245,24 +251,23 @@ final class FoundationRadioGroup<T extends Object> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-        container: true,
-        label: label,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(label, style: Theme.of(context).textTheme.labelLarge),
-            for (final item in items)
-              RadioListTile<T>(
-                value: item,
-                groupValue: value,
-                title: Text(itemLabel(item)),
-                onChanged: (next) {
-                  if (next != null) onChanged(next);
-                },
-              ),
-          ],
-        ),
-      );
+    container: true,
+    label: label,
+    child: RadioGroup<T>(
+      groupValue: value,
+      onChanged: (next) {
+        if (next != null) onChanged(next);
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(label, style: Theme.of(context).textTheme.labelLarge),
+          for (final item in items)
+            RadioListTile<T>(value: item, title: Text(itemLabel(item))),
+        ],
+      ),
+    ),
+  );
 }
 
 final class FoundationSlider extends StatelessWidget {
@@ -286,24 +291,24 @@ final class FoundationSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-        slider: true,
-        label: label,
-        value: valueLabel ?? value.toStringAsFixed(1),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(label, style: Theme.of(context).textTheme.labelLarge),
-            Slider(
-              value: value.clamp(min, max).toDouble(),
-              min: min,
-              max: max,
-              divisions: divisions,
-              label: valueLabel,
-              onChanged: onChanged,
-            ),
-          ],
+    slider: true,
+    label: label,
+    value: valueLabel ?? value.toStringAsFixed(1),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(label, style: Theme.of(context).textTheme.labelLarge),
+        Slider(
+          value: value.clamp(min, max).toDouble(),
+          min: min,
+          max: max,
+          divisions: divisions,
+          label: valueLabel,
+          onChanged: onChanged,
         ),
-      );
+      ],
+    ),
+  );
 }
 
 Future<bool?> showFoundationConfirmation(
@@ -312,24 +317,23 @@ Future<bool?> showFoundationConfirmation(
   required String message,
   String cancelLabel = 'Cancel',
   String confirmLabel = 'Continue',
-}) =>
-    showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(cancelLabel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(confirmLabel),
-          ),
-        ],
+}) => showDialog<bool>(
+  context: context,
+  builder: (context) => AlertDialog(
+    title: Text(title),
+    content: Text(message),
+    actions: <Widget>[
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(false),
+        child: Text(cancelLabel),
       ),
-    );
+      FilledButton(
+        onPressed: () => Navigator.of(context).pop(true),
+        child: Text(confirmLabel),
+      ),
+    ],
+  ),
+);
 
 final class FoundationSegmented<T extends Object> extends StatelessWidget {
   const FoundationSegmented({
@@ -351,21 +355,23 @@ final class FoundationSegmented<T extends Object> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-        container: true,
-        label: label,
-        child: SegmentedButton<T>(
-          segments: options
-              .map((option) => ButtonSegment<T>(
-                    value: option,
-                    label: Text(optionLabel(option)),
-                  ))
-              .toList(growable: false),
-          selected: selected,
-          multiSelectionEnabled: multiSelectionEnabled,
-          emptySelectionAllowed: multiSelectionEnabled,
-          onSelectionChanged: onChanged,
-        ),
-      );
+    container: true,
+    label: label,
+    child: SegmentedButton<T>(
+      segments: options
+          .map(
+            (option) => ButtonSegment<T>(
+              value: option,
+              label: Text(optionLabel(option)),
+            ),
+          )
+          .toList(growable: false),
+      selected: selected,
+      multiSelectionEnabled: multiSelectionEnabled,
+      emptySelectionAllowed: multiSelectionEnabled,
+      onSelectionChanged: onChanged,
+    ),
+  );
 }
 
 final class FoundationChoiceChips<T extends Object> extends StatelessWidget {
@@ -386,12 +392,13 @@ final class FoundationChoiceChips<T extends Object> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-        container: true,
-        label: label,
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: options.map((option) {
+    container: true,
+    label: label,
+    child: Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: options
+          .map((option) {
             final isSelected = selected.contains(option);
             return FilterChip(
               label: Text(optionLabel(option)),
@@ -402,9 +409,10 @@ final class FoundationChoiceChips<T extends Object> extends StatelessWidget {
                 onChanged(updated);
               },
             );
-          }).toList(growable: false),
-        ),
-      );
+          })
+          .toList(growable: false),
+    ),
+  );
 }
 
 final class FoundationDateTimeField extends StatelessWidget {
@@ -425,20 +433,20 @@ final class FoundationDateTimeField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-        button: true,
-        label: label,
-        value: displayValue,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: onTap,
-          child: InputDecorator(
-            decoration: InputDecoration(
-              labelText: label,
-              helperText: helperText,
-              suffixIcon: Icon(icon),
-            ),
-            child: Text(displayValue),
-          ),
+    button: true,
+    label: label,
+    value: displayValue,
+    child: InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          helperText: helperText,
+          suffixIcon: Icon(icon),
         ),
-      );
+        child: Text(displayValue),
+      ),
+    ),
+  );
 }

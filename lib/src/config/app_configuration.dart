@@ -57,7 +57,7 @@ final class AppConfiguration {
     return AppConfiguration(
       environment: AppEnvironment.values.firstWhere(
         (value) => value.name == environmentName,
-        orElse: () => throw ConfigurationException(
+        orElse: () => throw const ConfigurationException(
           'Unsupported APP_ENVIRONMENT: $environmentName',
         ),
       ),
