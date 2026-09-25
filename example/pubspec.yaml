@@ -1,7 +1,7 @@
 name: flutter_app_foundation_example
 description: Integration example for flutter_app_foundation.
 publish_to: none
-version: 0.1.0+1
+version: 0.2.0+1
 
 environment:
   sdk: ">=3.9.0 <4.0.0"
@@ -13,6 +13,7 @@ dependencies:
     path: ../
 
 dev_dependencies:
+  flutter_lints: ^4.0.0
   flutter_test:
     sdk: flutter
 

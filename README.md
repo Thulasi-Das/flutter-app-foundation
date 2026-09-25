@@ -1,174 +1,175 @@
 # Flutter App Foundation
 
-Use the [storage provider guide](docs/STORAGE_PROVIDERS.md) to add local file,
-local SQLite, Google Sheets, Airtable, backend-brokered database, or future
-managed workspace storage behind the same contract used by Django.
-Use the [telemetry guide](docs/TELEMETRY.md) for purpose-specific consent,
-strict event schemas, safe error diagnostics, regional policy presets, and
-optional commercial insights.
+A product-neutral foundation for Flutter apps on mobile, web, and desktop.
+Import it, write `main()`, and you have production error handling, theming,
+routing, startup gating, a typed HTTP client, auth token handling, state
+management, accessible widgets, and test fakes. You write the features.
 
-A product-neutral Flutter package for mobile-first and future desktop products.
-It supplies stable ports, reference behavior, accessible UI primitives, and test
-fakes while keeping product domain models and vendor SDKs in consuming apps.
+Product domain models and vendor SDKs stay in your app. The foundation defines
+small ports (interfaces) for them and ships working adapters wherever a
+plugin-free one is possible.
 
-## What v0.1 provides
+## Quick start
 
-- ordered, observable application bootstrap and validated flavor configuration;
-- light, dark, system, and high-contrast-ready semantic themes;
-- accessible fields, app states, banners, and adaptive navigation shell;
-- OIDC/PKCE and secure token-storage contracts with serialized refresh logic;
-- typed transport failures, correlation/idempotency headers, cancellation, and
-  bounded retry rules;
-- migration/database contracts and an atomic in-memory reference database;
-- a Django-compatible privacy-first workspace store registry, local file
-  adapter, and pluggable SQLite driver adapter;
-- offline outbox/push/pull contracts and a single-flight sync coordinator;
-- staged backup/restore contracts;
-- allowlist-based structured logging and telemetry ports;
-- default-deny, consent-governed product telemetry with withdrawal purge and
-  Django-compatible regional policy presets;
-- ports for connectivity, lifecycle, notifications, deep links, flags,
-  localization, accessibility, and mobile security controls;
-- test clocks, IDs, fakes, example app, tests, and CI.
-
-The foundation deliberately does **not** contain product entities, vendor
-credentials, generated API models, or platform plugin choices.
-
-## Capability boundaries
-
-New applications can import only the capabilities they use:
-
-```dart
-import 'package:flutter_app_foundation/foundation_app.dart';
-import 'package:flutter_app_foundation/foundation_auth.dart';
-import 'package:flutter_app_foundation/foundation_contracts.dart';
-import 'package:flutter_app_foundation/foundation_network.dart';
-```
-
-Or start from `foundation_preset_minimal.dart`,
-`foundation_preset_connected.dart`, or `foundation_preset_offline.dart`.
-Presets are ordinary Dart re-export libraries, so there is no service locator
-or hidden runtime registration.
-
-The original aggregate imports remain backward compatible:
-
-```dart
-import 'package:flutter_app_foundation/flutter_app_foundation.dart';
-import 'package:flutter_app_foundation/flutter_app_foundation_ui.dart';
-```
-
-The first library is vendor-neutral application infrastructure. The second is
-the Flutter widget/theme surface. Consumers provide adapters for Keychain or
-Keystore, SQLite/Drift, HTTP/Dio, OIDC, APNs/FCM, analytics, and crash vendors.
-
-## Use from another Flutter application
-
-The package currently has `publish_to: none`, so consume it through a local path
-or an immutable Git reference. For local development, add this to the consuming
-application's `pubspec.yaml`:
-
-```yaml
-dependencies:
-  flutter_app_foundation:
-    path: ../flutter-app-foundation
-```
-
-Choose the smallest suitable composition:
-
-| Preset                             | Intended application                                           |
-| ---------------------------------- | -------------------------------------------------------------- |
-| `foundation_preset_minimal.dart`   | connected application shell                                    |
-| `foundation_preset_connected.dart` | authenticated app with observability and notifications         |
-| `foundation_preset_offline.dart`   | offline-first app with local data, backup, and synchronization |
-
-Then fetch dependencies and choose a preset:
-
-```bash
-flutter pub get
-```
-
-```dart
-import 'package:flutter_app_foundation/foundation_preset_offline.dart';
-```
-
-Applications with a narrower composition can import capabilities directly:
-
-```dart
-import 'package:flutter_app_foundation/foundation_contracts.dart';
-import 'package:flutter_app_foundation/foundation_auth.dart';
-import 'package:flutter_app_foundation/foundation_data.dart';
-import 'package:flutter_app_foundation/foundation_storage.dart';
-import 'package:flutter_app_foundation/foundation_sync.dart';
-import 'package:flutter_app_foundation/foundation_telemetry.dart';
-```
-
-Create the concrete dependency graph at application startup:
-
-```dart
-final coordinator = SyncCoordinator(
-  remote: ProductRemoteSyncAdapter(apiClient),
-  store: ProductDriftSyncStore(database),
-  clock: const SystemClock(),
-);
-```
-
-The product supplies and contract-tests its OIDC, secure-storage, SQLite,
-network, notification, telemetry, and crash-reporting adapters. Product
-entities, generated API models, authorization decisions, vendor credentials,
-and platform signing configuration remain outside this package. This is an
-embedded package, not a hosted API, and therefore has no foundation API key.
-
-For reuse without a local checkout, reference a reviewed immutable Git tag:
+**1. Add the dependency** (pin an immutable tag; see [Releasing](docs/RELEASING.md)):
 
 ```yaml
 dependencies:
   flutter_app_foundation:
     git:
       url: https://github.com/Thulasi-Das/flutter-app-foundation.git
-      ref: v0.1.0
+      ref: v0.2.0
 ```
 
-Remove `publish_to: none`, complete the release gates, and publish an immutable
-version before replacing the path or Git dependency with a registry version.
-
-For composition-root wiring, authentication, network and sync adapters,
-repository patterns, lifecycle, and device validation, read the
-[consumer implementation guide](docs/CONSUMER_IMPLEMENTATION.md).
-
-For permissioned analytics and exception reporting, read the
-[telemetry implementation guide](docs/TELEMETRY.md).
-
-## Quick start
+**2. Write `main.dart`:**
 
 ```dart
-final configuration = AppConfiguration(
-  environment: AppEnvironment.development,
-  apiBaseUri: Uri.parse('https://api.example.test'),
-  release: 'local',
-  buildNumber: '1',
-  appId: 'example.app',
-);
+import 'package:flutter/material.dart';
+import 'package:flutter_app_foundation/foundation_preset_minimal.dart';
 
-final bootstrap = BootstrapCoordinator(<StartupStep>[
-  StartupStep(id: 'database', run: () async {}),
-  StartupStep(id: 'session', run: () async {}),
-]);
+Future<void> main() => runFoundationApp(() async {
+  final api = NetworkClient(
+    transport: HttpNetworkTransport(),
+    ids: UuidV4Generator(),
+    baseUri: Uri.parse('https://api.example.com/v1'),
+  );
+  final theme = ThemeController(store: InMemoryKeyValueStore());
 
-await bootstrap.start();
+  return FoundationApp(
+    title: 'My App',
+    seedColor: Colors.teal,
+    themeController: theme,
+    bootstrap: BootstrapCoordinator([
+      StartupStep(id: 'theme', run: theme.load, required: false),
+    ]),
+    services: [ServiceBinding<NetworkClient>(api)],
+    routeTable: FoundationRouteTable(routes: [
+      FoundationRoute(
+        destination: const AppDestination(name: 'home', path: '/'),
+        builder: (context, _) => const ProjectsPage(),
+      ),
+      FoundationRoute(
+        destination: const AppDestination(name: 'project', path: '/projects/:id'),
+        builder: (context, match) => ProjectPage(id: match.pathParameters['id']!),
+      ),
+    ]),
+  );
+});
 ```
 
-See [architecture](docs/ARCHITECTURE.md), [integration guide](docs/INTEGRATION.md),
-[security contract](docs/SECURITY.md), and the [example](example/lib/main.dart).
+**3. Write a screen.** Loading, empty, offline, and error states are handled:
 
-## Validation
+```dart
+class ProjectsPage extends StatefulWidget {
+  const ProjectsPage({super.key});
+  @override
+  State<ProjectsPage> createState() => _ProjectsPageState();
+}
+
+class _ProjectsPageState extends State<ProjectsPage> {
+  late final projects = AsyncController<List<Object?>>(
+    load: () => context.service<NetworkClient>().getJson('projects'),
+  )..refresh();
+
+  @override
+  void dispose() {
+    projects.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Projects')),
+    body: AsyncValueBuilder<List<Object?>>(
+      controller: projects,
+      isEmpty: (items) => items.isEmpty,
+      builder: (context, items) => ListView(
+        children: [for (final item in items) ListTile(title: Text('$item'))],
+      ),
+    ),
+  );
+}
+```
+
+The [example app](example/lib) is a complete, tested starter: composition
+root, repository interface with HTTP and demo implementations, list/detail
+routes, optimistic updates, forms with validation, and persisted theme
+settings. Copy it to start a new product.
+
+## What you get
+
+| Area | Import | Ready-to-use pieces |
+| --- | --- | --- |
+| App runtime | `flutter_app_foundation_ui.dart` | `runFoundationApp` (framework, platform, and startup error capture), `FoundationApp` (light/dark/high-contrast themes, bootstrap gate, forced-update gate, localizable strings, service scopes), `ThemeController` |
+| State and DI | `foundation_state.dart` | `AsyncValue`, `AsyncController` (latest-wins, dispose-safe, stale-while-revalidate), `AsyncValueBuilder`, `ServiceScope`/`MultiServiceScope` |
+| Routing | `flutter_app_foundation_ui.dart`, `foundation_app.dart` | `FoundationRouteTable` (path and query parameters, auth redirect, deep-link initial stack, not-found page), `NavigatorNavigationDriver`, `GuardedNavigationDriver`, `AuthenticationRouteGuard`; or pass any `routerConfig` (e.g. go_router) |
+| Networking | `foundation_network.dart` | `HttpNetworkTransport` (all platforms, abortable timeouts and cancellation), `NetworkClient` (base URI, JSON helpers, correlation and idempotency headers, bounded retries with `Retry-After`, automatic token refresh on `401`), typed `ApiFailure` |
+| Auth | `foundation_auth.dart` | `AuthCoordinator` (single-flight refresh, offline-tolerant), `AuthCoordinatorTokenProvider`, `SecureTokenStore`, PKCE S256 request builder with state validation |
+| UI kit | `flutter_app_foundation_ui.dart` | Semantic themes and tokens, adaptive navigation shell, accessible fields, `FoundationValidators`, `FoundationAsyncButton`, state views, banners, snack bars, confirmation dialogs |
+| Data | `foundation_data.dart`, `foundation_local_file_storage.dart` | `KeyValueStore` (in-memory and atomic file adapters), local database and migration contracts, workspace storage registry with file and SQLite adapters, backup/restore with SHA-256 |
+| Offline sync | `foundation_sync.dart` | Outbox, push/pull ports, single-flight `SyncCoordinator` |
+| Observability | `foundation_observability.dart`, `foundation_telemetry.dart` | Allowlist-redacting `StructuredLogger`, debug and fan-out sinks, `CrashReporter` port with logging and fan-out reporters, consent-gated telemetry |
+| Platform | `foundation_app.dart`, `flutter_app_foundation_ui.dart` | Lifecycle and accessibility adapters, connectivity, deep-link validation, feature flags, notifications, security ports |
+| Contracts | `foundation_contracts.dart` | `Result`, `UuidV4Generator`, `AppVersion`, clocks |
+| Testing | `foundation_testing.dart` | Fake clock, IDs, scripted transport, fake OIDC and sync, widget harness |
+
+### Presets
+
+Presets are plain re-export libraries; there is no hidden registration.
+
+| Preset | For |
+| --- | --- |
+| `foundation_preset_minimal.dart` | A connected app: runtime, UI, state, network, preferences, observability |
+| `foundation_preset_connected.dart` | Adds auth, notifications, and consent telemetry |
+| `foundation_preset_offline.dart` | Adds local data, workspace storage, backup, and sync |
+
+You can also import individual capability libraries instead of a preset.
+`flutter_app_foundation.dart` (pure Dart core) and
+`flutter_app_foundation_ui.dart` (Flutter surface) remain as aggregate
+imports.
+
+## Before you ship
+
+The foundation deliberately avoids platform plugins. Before release, supply
+these adapters in your app; each is a few lines, shown in
+[Adapter recipes](docs/RECIPES.md):
+
+- `SecureStorage` over Keychain/Keystore (e.g. `flutter_secure_storage`).
+  `InMemorySecureStorage` is for tests only.
+- `OidcClient` for your identity provider (e.g. `flutter_appauth`).
+- `KeyValueStore` over `shared_preferences`, or `FileKeyValueStore` with a
+  `path_provider` directory.
+- `CrashReporter` for your crash vendor, honouring reliability consent.
+- A SQLite/Drift `LocalDatabase` and `SyncStore` if you work offline.
+
+Then follow the [consumer implementation guide](docs/CONSUMER_IMPLEMENTATION.md)
+and the [product release gate](docs/RELEASING.md).
+
+## Documentation
+
+- [Adapter recipes](docs/RECIPES.md): secure storage, preferences, OIDC,
+  crash reporting, go_router, localization
+- [Architecture](docs/ARCHITECTURE.md) and [integration guide](docs/INTEGRATION.md)
+- [Consumer implementation guide](docs/CONSUMER_IMPLEMENTATION.md)
+- [Security contract](docs/SECURITY.md)
+- [Storage providers](docs/STORAGE_PROVIDERS.md) and [telemetry](docs/TELEMETRY.md)
+- [Testing and release policy](docs/RELEASING.md)
+
+## Requirements
+
+Flutter 3.35 or later (Dart 3.9 or later). CI tests the minimum version and
+current stable.
+
+## Development
 
 ```bash
 flutter pub get
 dart format --output=none --set-exit-if-changed .
-flutter analyze
+flutter analyze --fatal-infos
 flutter test --coverage
-flutter build web --target example/lib/main.dart
+dart run --enable-asserts tool/self_check.dart
+(cd example && flutter test)
 ```
 
-Version `0.1.x` is an integration-preview API. Product repositories should pin
-an exact compatible version until `1.0.0`.
+Versions `0.x` are pre-1.0: pin an exact tag, and read the
+[changelog](CHANGELOG.md) before upgrading.

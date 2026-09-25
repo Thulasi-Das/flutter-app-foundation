@@ -40,6 +40,23 @@ void main() {
       await bootstrap.dispose();
     });
 
+    testWidgets('stringsBuilder localizes startup screens', (tester) async {
+      final bootstrap = BootstrapCoordinator(<StartupStep>[
+        StartupStep(id: 'pending', run: () => Completer<void>().future),
+      ]);
+      await tester.pumpWidget(
+        FoundationApp(
+          title: 'Test',
+          bootstrap: bootstrap,
+          stringsBuilder: (context) => FoundationStrings(
+            startingTitle: 'Starting (${Localizations.localeOf(context)})',
+          ),
+          home: const SizedBox(),
+        ),
+      );
+      expect(find.text('Starting (en)'), findsOneWidget);
+    });
+
     testWidgets('shows a recoverable failure and retries', (tester) async {
       var attempts = 0;
       final bootstrap = BootstrapCoordinator(<StartupStep>[

@@ -32,6 +32,7 @@ final class FoundationApp extends StatelessWidget {
     this.theme,
     this.darkTheme,
     this.strings = FoundationStrings.english,
+    this.stringsBuilder,
     this.services = const <ServiceBinding<Object>>[],
     this.navigatorKey,
     this.scaffoldMessengerKey,
@@ -80,6 +81,11 @@ final class FoundationApp extends StatelessWidget {
   final ThemeData? darkTheme;
   final FoundationStrings strings;
 
+  /// Builds [strings] from the app's localizations; runs below
+  /// `Localizations`, so `AppLocalizations.of(context)` works. Takes
+  /// precedence over [strings] and also reaches startup and update screens.
+  final FoundationStrings Function(BuildContext context)? stringsBuilder;
+
   /// Services made available to every route through [ServiceScope].
   final List<ServiceBinding<Object>> services;
   final GlobalKey<NavigatorState>? navigatorKey;
@@ -118,6 +124,7 @@ final class FoundationApp extends StatelessWidget {
         FoundationTheme.dark(seedColor: seedColor, highContrast: true);
 
     Widget wrap(BuildContext context, Widget? child) {
+      final strings = stringsBuilder?.call(context) ?? this.strings;
       Widget current = child ?? const SizedBox.shrink();
       if (builder != null) current = builder!(context, current);
       final coordinator = bootstrap;
