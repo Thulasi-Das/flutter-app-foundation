@@ -40,8 +40,10 @@ CREATE TABLE IF NOT EXISTS foundation_records (
   final WorkspaceSqliteDriver _driver;
 
   @override
-  final StoreCapabilities capabilities =
-      const StoreCapabilities(transactions: true, offline: true);
+  final StoreCapabilities capabilities = const StoreCapabilities(
+    transactions: true,
+    offline: true,
+  );
 
   @override
   Future<bool> health() async => (await _driver.query('SELECT 1')).isNotEmpty;

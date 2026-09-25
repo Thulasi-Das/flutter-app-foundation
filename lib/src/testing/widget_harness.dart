@@ -16,15 +16,15 @@ final class FoundationTestHarness extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        theme: FoundationTheme.light(),
-        darkTheme: FoundationTheme.dark(),
-        themeMode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(textScale),
-          ),
-          child: child!,
-        ),
-        home: Scaffold(body: child),
-      );
+    theme: FoundationTheme.light(),
+    darkTheme: FoundationTheme.dark(),
+    themeMode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(
+        context,
+      ).copyWith(textScaler: TextScaler.linear(textScale)),
+      child: child!,
+    ),
+    home: Scaffold(body: child),
+  );
 }

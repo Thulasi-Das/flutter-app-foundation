@@ -30,16 +30,30 @@ in one real SQLite transaction, then render from local data immediately.
   `foundation_sync.dart` are independently adoptable capability libraries.
 - `foundation_testing.dart` exports deterministic fakes and shared test
   primitives. The widget harness remains on the UI surface.
-- `flutter_app_foundation_ui.dart` exports Flutter themes, fields, state views,
-  adaptive shell, bootstrap gate, and widget-test harness.
+- `foundation_state.dart` exports `AsyncValue`, `AsyncController`,
+  `AsyncValueBuilder`, and `ServiceScope` for view models and explicit widget
+  injection.
+- `foundation_preferences.dart` exports the `KeyValueStore` port;
+  `foundation_local_file_storage.dart` adds the `dart:io` file adapters.
+- `flutter_app_foundation_ui.dart` exports the app runtime
+  (`runFoundationApp`, `FoundationApp`, `ThemeController`), route table,
+  themes, fields, validators, state views, adaptive shell, bootstrap gate,
+  Flutter platform adapters, and the widget-test harness.
 - `foundation_preset_minimal.dart`, `foundation_preset_connected.dart`, and
   `foundation_preset_offline.dart` are curated re-export compositions.
 - `flutter_app_foundation.dart` remains the backward-compatible aggregate core
   entry point.
 - `lib/src/**` is implementation detail. Consumers import only barrel files.
 
-Dependency injection is explicit through constructors. There is no global
-service locator, static token cache, or global mutable database.
+Dependency injection is explicit through constructors. Widgets receive
+services through typed `ServiceScope`s created at the composition root. There
+is no global service locator, static token cache, or global mutable database.
+
+Plugin-free production adapters ship in the package (`HttpNetworkTransport`,
+`FileKeyValueStore`, `Sha256BackupChecksum`, `UuidV4Generator`, Flutter
+lifecycle and accessibility adapters). Adapters that need platform plugins
+(secure storage, OIDC, SQLite, push, crash vendors) live in the consuming app;
+see [adapter recipes](RECIPES.md).
 
 Capability libraries and presets remain in one package and version line. A
 capability becomes a separate pub package only after independent consumers,

@@ -1,6 +1,12 @@
 import 'dart:async';
 
-enum NotificationPermission { unknown, notRequested, denied, provisional, granted }
+enum NotificationPermission {
+  unknown,
+  notRequested,
+  denied,
+  provisional,
+  granted,
+}
 
 final class NotificationEnvelope {
   const NotificationEnvelope({

@@ -62,8 +62,10 @@ final class MigrationPlan {
     if (to < from) throw ArgumentError('Downgrade migrations are unsupported.');
     if (to == from) return const <DatabaseMigration>[];
     final path = migrations
-        .where((migration) =>
-            migration.fromVersion >= from && migration.toVersion <= to)
+        .where(
+          (migration) =>
+              migration.fromVersion >= from && migration.toVersion <= to,
+        )
         .toList(growable: false);
     if (path.isEmpty ||
         path.first.fromVersion != from ||
@@ -78,7 +80,7 @@ final class MigrationPlan {
 /// Deterministic reference adapter. Production apps provide a SQLite adapter.
 final class InMemoryLocalDatabase implements LocalDatabase {
   InMemoryLocalDatabase({int schemaVersion = 0})
-      : _schemaVersion = schemaVersion;
+    : _schemaVersion = schemaVersion;
 
   int _schemaVersion;
   Map<String, Map<String, StoredRecord>> _tables =
@@ -133,9 +135,9 @@ final class InMemoryLocalDatabase implements LocalDatabase {
   @override
   Stream<void> watch(String table) {
     if (_closed) return const Stream<void>.empty();
-    return (_watchers[table] ??=
-            StreamController<void>.broadcast(sync: true))
-        .stream;
+    return (_watchers[table] ??= StreamController<void>.broadcast(
+      sync: true,
+    )).stream;
   }
 
   @override
@@ -149,10 +151,9 @@ final class InMemoryLocalDatabase implements LocalDatabase {
 
   static Map<String, Map<String, StoredRecord>> _cloneTables(
     Map<String, Map<String, StoredRecord>> source,
-  ) =>
-      source.map(
-        (table, rows) => MapEntry(table, <String, StoredRecord>{...rows}),
-      );
+  ) => source.map(
+    (table, rows) => MapEntry(table, <String, StoredRecord>{...rows}),
+  );
 }
 
 final class _MemoryTransaction implements DatabaseTransaction {

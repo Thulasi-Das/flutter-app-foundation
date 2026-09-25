@@ -41,61 +41,71 @@ final class AdaptiveAppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     assert(destinations.isNotEmpty);
     assert(selectedIndex >= 0 && selectedIndex < destinations.length);
-    return LayoutBuilder(builder: (context, constraints) {
-      final wide = constraints.maxWidth >= desktopBreakpoint;
-      final content = Column(children: <Widget>[
-        if (notice != null)
-          FoundationStatusBanner(
-            message: '${notice!.title}: ${notice!.message}',
-            actionLabel: notice!.actionLabel,
-            onAction: onNoticeAction,
-            icon: _noticeIcon(notice!.state),
-          ),
-        Expanded(child: body),
-      ]);
-      return Scaffold(
-        appBar: appBar,
-        body: wide
-            ? Row(children: <Widget>[
-                NavigationRail(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= desktopBreakpoint;
+        final content = Column(
+          children: <Widget>[
+            if (notice != null)
+              FoundationStatusBanner(
+                message: '${notice!.title}: ${notice!.message}',
+                actionLabel: notice!.actionLabel,
+                onAction: onNoticeAction,
+                icon: _noticeIcon(notice!.state),
+              ),
+            Expanded(child: body),
+          ],
+        );
+        return Scaffold(
+          appBar: appBar,
+          body: wide
+              ? Row(
+                  children: <Widget>[
+                    NavigationRail(
+                      selectedIndex: selectedIndex,
+                      onDestinationSelected: onDestinationSelected,
+                      labelType: NavigationRailLabelType.all,
+                      destinations: destinations
+                          .map(
+                            (item) => NavigationRailDestination(
+                              icon: Icon(item.icon),
+                              selectedIcon: Icon(item.selectedIcon),
+                              label: Text(item.label),
+                            ),
+                          )
+                          .toList(growable: false),
+                    ),
+                    const VerticalDivider(width: 1),
+                    Expanded(child: content),
+                  ],
+                )
+              : content,
+          bottomNavigationBar: wide
+              ? null
+              : NavigationBar(
                   selectedIndex: selectedIndex,
                   onDestinationSelected: onDestinationSelected,
-                  labelType: NavigationRailLabelType.all,
                   destinations: destinations
-                      .map((item) => NavigationRailDestination(
-                            icon: Icon(item.icon),
-                            selectedIcon: Icon(item.selectedIcon),
-                            label: Text(item.label),
-                          ))
-                      .toList(growable: false),
-                ),
-                const VerticalDivider(width: 1),
-                Expanded(child: content),
-              ])
-            : content,
-        bottomNavigationBar: wide
-            ? null
-            : NavigationBar(
-                selectedIndex: selectedIndex,
-                onDestinationSelected: onDestinationSelected,
-                destinations: destinations
-                    .map((item) => NavigationDestination(
+                      .map(
+                        (item) => NavigationDestination(
                           icon: Icon(item.icon),
                           selectedIcon: Icon(item.selectedIcon),
                           label: item.label,
-                        ))
-                    .toList(growable: false),
-              ),
-      );
-    });
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+        );
+      },
+    );
   }
 
   IconData _noticeIcon(GlobalAppState state) => switch (state) {
-        GlobalAppState.ready => Icons.check_circle_outline,
-        GlobalAppState.offline => Icons.cloud_off_outlined,
-        GlobalAppState.sessionExpired => Icons.lock_clock_outlined,
-        GlobalAppState.migrationFailed => Icons.storage_outlined,
-        GlobalAppState.updateRequired => Icons.system_update_outlined,
-        GlobalAppState.maintenance => Icons.construction_outlined,
-      };
+    GlobalAppState.ready => Icons.check_circle_outline,
+    GlobalAppState.offline => Icons.cloud_off_outlined,
+    GlobalAppState.sessionExpired => Icons.lock_clock_outlined,
+    GlobalAppState.migrationFailed => Icons.storage_outlined,
+    GlobalAppState.updateRequired => Icons.system_update_outlined,
+    GlobalAppState.maintenance => Icons.construction_outlined,
+  };
 }

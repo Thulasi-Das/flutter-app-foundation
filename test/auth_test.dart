@@ -23,11 +23,13 @@ void main() {
     final clock = FakeClock(DateTime.utc(2026));
     final storage = InMemorySecureStorage();
     final store = SecureTokenStore(storage);
-    await store.save(AuthTokens(
-      accessToken: 'expired',
-      refreshToken: 'refresh-1',
-      accessTokenExpiresAt: DateTime.utc(2025),
-    ));
+    await store.save(
+      AuthTokens(
+        accessToken: 'expired',
+        refreshToken: 'refresh-1',
+        accessTokenExpiresAt: DateTime.utc(2025),
+      ),
+    );
     final oidc = FakeOidcClient(
       authorized: AuthTokens(
         accessToken: 'authorized',

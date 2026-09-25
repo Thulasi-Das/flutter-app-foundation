@@ -1,4 +1,5 @@
 enum DeviceRiskSignal { rooted, jailbroken, debuggerAttached, insecureStorage }
+
 enum DataClassification { public, operational, sensitivePersonal, restricted }
 
 abstract interface class DeviceRiskProvider {
@@ -28,8 +29,8 @@ final class AllowlistExternalResourcePolicy implements ExternalResourcePolicy {
   AllowlistExternalResourcePolicy({
     required Set<String> webHosts,
     required Set<String> importedMimeTypes,
-  })  : _webHosts = Set<String>.unmodifiable(webHosts),
-        _mimeTypes = Set<String>.unmodifiable(importedMimeTypes);
+  }) : _webHosts = Set<String>.unmodifiable(webHosts),
+       _mimeTypes = Set<String>.unmodifiable(importedMimeTypes);
 
   final Set<String> _webHosts;
   final Set<String> _mimeTypes;

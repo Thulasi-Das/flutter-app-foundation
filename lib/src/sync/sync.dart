@@ -4,8 +4,11 @@ import 'dart:convert';
 import '../testing/primitives.dart';
 
 enum MutationOperation { create, update, delete }
+
 enum MutationStatus { pending, sending, applied, conflicted, permanentlyFailed }
+
 enum SyncPhase { idle, syncing, offline, actionRequired, failed }
+
 enum PushDisposition { applied, conflict, rejected }
 
 final class SyncMutation {
@@ -30,6 +33,7 @@ final class SyncMutation {
   final String entityType;
   final String entityId;
   final MutationOperation operation;
+
   /// Null when creating an entity that has no authoritative remote version.
   final int? baseVersion;
   final Map<String, Object?> payload;
@@ -46,22 +50,21 @@ final class SyncMutation {
     int? attemptCount,
     DateTime? nextAttemptAt,
     MutationStatus? status,
-  }) =>
-      SyncMutation(
-        mutationId: mutationId,
-        workspaceId: workspaceId,
-        entityType: entityType,
-        entityId: entityId,
-        operation: operation,
-        baseVersion: baseVersion,
-        payload: payload,
-        occurredAt: occurredAt,
-        actorId: actorId,
-        deviceId: deviceId,
-        attemptCount: attemptCount ?? this.attemptCount,
-        nextAttemptAt: nextAttemptAt ?? this.nextAttemptAt,
-        status: status ?? this.status,
-      );
+  }) => SyncMutation(
+    mutationId: mutationId,
+    workspaceId: workspaceId,
+    entityType: entityType,
+    entityId: entityId,
+    operation: operation,
+    baseVersion: baseVersion,
+    payload: payload,
+    occurredAt: occurredAt,
+    actorId: actorId,
+    deviceId: deviceId,
+    attemptCount: attemptCount ?? this.attemptCount,
+    nextAttemptAt: nextAttemptAt ?? this.nextAttemptAt,
+    status: status ?? this.status,
+  );
 }
 
 final class PulledChange {
@@ -183,9 +186,9 @@ final class SyncCoordinator {
     this.maxBatchCount = 100,
     this.maxBatchBytes = 512 * 1024,
     this.maximumPullPages = 100,
-  })  : _remote = remote,
-        _store = store,
-        _clock = clock;
+  }) : _remote = remote,
+       _store = store,
+       _clock = clock;
 
   final RemoteSyncPort _remote;
   final SyncStore _store;
@@ -238,11 +241,13 @@ final class SyncCoordinator {
               );
               break;
             case PushDisposition.conflict:
-              await _store.recordConflict(SyncConflict(
-                mutation: mutation,
-                code: acknowledgement.code ?? 'version_conflict',
-                remoteValues: acknowledgement.remoteValues,
-              ));
+              await _store.recordConflict(
+                SyncConflict(
+                  mutation: mutation,
+                  code: acknowledgement.code ?? 'version_conflict',
+                  remoteValues: acknowledgement.remoteValues,
+                ),
+              );
               break;
             case PushDisposition.rejected:
               await _store.markPermanentFailure(
@@ -264,9 +269,7 @@ final class SyncCoordinator {
       }
 
       var cursor = await _store.cursor(workspaceId);
-      for (var pageIndex = 0;
-          pageIndex < maximumPullPages;
-          pageIndex++) {
+      for (var pageIndex = 0; pageIndex < maximumPullPages; pageIndex++) {
         final page = await _remote.pull(workspaceId, cursor);
         await _store.applyPageAtomically(
           workspaceId,
@@ -331,24 +334,28 @@ final class InMemorySyncStore implements SyncStore {
     required int maxCount,
     required int maxPayloadBytes,
   }) async {
-    final eligible = mutations.values
-        .where((mutation) =>
-            mutation.workspaceId == workspaceId &&
-            mutation.status == MutationStatus.pending &&
-            (mutation.nextAttemptAt == null ||
-                !mutation.nextAttemptAt!.isAfter(now)))
-        .toList()
-      ..sort((left, right) {
-        final order = left.occurredAt.compareTo(right.occurredAt);
-        return order != 0
-            ? order
-            : left.mutationId.compareTo(right.mutationId);
-      });
+    final eligible =
+        mutations.values
+            .where(
+              (mutation) =>
+                  mutation.workspaceId == workspaceId &&
+                  mutation.status == MutationStatus.pending &&
+                  (mutation.nextAttemptAt == null ||
+                      !mutation.nextAttemptAt!.isAfter(now)),
+            )
+            .toList()
+          ..sort((left, right) {
+            final order = left.occurredAt.compareTo(right.occurredAt);
+            return order != 0
+                ? order
+                : left.mutationId.compareTo(right.mutationId);
+          });
     final result = <SyncMutation>[];
     var bytes = 0;
     for (final mutation in eligible) {
       if (result.length >= maxCount) break;
-      if (result.isNotEmpty && bytes + mutation.payloadBytes > maxPayloadBytes) {
+      if (result.isNotEmpty &&
+          bytes + mutation.payloadBytes > maxPayloadBytes) {
         break;
       }
       result.add(mutation);
@@ -395,16 +402,18 @@ final class InMemorySyncStore implements SyncStore {
   @override
   Future<void> recordConflict(SyncConflict conflict) async {
     conflicts[conflict.mutation.mutationId] = conflict;
-    mutations[conflict.mutation.mutationId] =
-        conflict.mutation.copyWith(status: MutationStatus.conflicted);
+    mutations[conflict.mutation.mutationId] = conflict.mutation.copyWith(
+      status: MutationStatus.conflicted,
+    );
   }
 
   @override
   Future<void> markPermanentFailure(String mutationId, String code) async {
     final mutation = mutations[mutationId];
     if (mutation != null) {
-      mutations[mutationId] =
-          mutation.copyWith(status: MutationStatus.permanentlyFailed);
+      mutations[mutationId] = mutation.copyWith(
+        status: MutationStatus.permanentlyFailed,
+      );
       permanentFailures[mutationId] = code;
     }
   }
@@ -423,7 +432,8 @@ final class InMemorySyncStore implements SyncStore {
       if (change.workspaceId != workspaceId) {
         throw StateError('Cross-workspace pull result rejected.');
       }
-      final key = '${change.workspaceId}:${change.entityType}:${change.entityId}';
+      final key =
+          '${change.workspaceId}:${change.entityType}:${change.entityId}';
       final current = staged[key];
       if (current == null || change.version > current.version) {
         staged[key] = change;
@@ -437,9 +447,11 @@ final class InMemorySyncStore implements SyncStore {
 
   @override
   Future<int> pendingCount(String workspaceId) async => mutations.values
-      .where((mutation) =>
-          mutation.workspaceId == workspaceId &&
-          (mutation.status == MutationStatus.pending ||
-              mutation.status == MutationStatus.sending))
+      .where(
+        (mutation) =>
+            mutation.workspaceId == workspaceId &&
+            (mutation.status == MutationStatus.pending ||
+                mutation.status == MutationStatus.sending),
+      )
       .length;
 }

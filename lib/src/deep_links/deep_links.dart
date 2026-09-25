@@ -7,9 +7,9 @@ final class DeepLinkPolicy {
     required Set<String> allowedSchemes,
     required Set<String> allowedHosts,
     required Set<String> allowedPathPrefixes,
-  })  : allowedSchemes = Set<String>.unmodifiable(allowedSchemes),
-        allowedHosts = Set<String>.unmodifiable(allowedHosts),
-        allowedPathPrefixes = Set<String>.unmodifiable(allowedPathPrefixes);
+  }) : allowedSchemes = Set<String>.unmodifiable(allowedSchemes),
+       allowedHosts = Set<String>.unmodifiable(allowedHosts),
+       allowedPathPrefixes = Set<String>.unmodifiable(allowedPathPrefixes);
 
   final Set<String> allowedSchemes;
   final Set<String> allowedHosts;

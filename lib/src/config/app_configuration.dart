@@ -1,3 +1,5 @@
+import '../core/version.dart';
+
 enum AppEnvironment { development, staging, production, test }
 
 final class ConfigurationException implements Exception {
@@ -57,7 +59,7 @@ final class AppConfiguration {
     return AppConfiguration(
       environment: AppEnvironment.values.firstWhere(
         (value) => value.name == environmentName,
-        orElse: () => throw ConfigurationException(
+        orElse: () => throw const ConfigurationException(
           'Unsupported APP_ENVIRONMENT: $environmentName',
         ),
       ),
@@ -77,6 +79,21 @@ final class AppConfiguration {
   final String? minimumSupportedVersion;
   final bool telemetryEnabled;
   final Map<String, String> attributes;
+
+  bool get isProduction => environment == AppEnvironment.production;
+
+  /// True when [release] is older than [minimumSupportedVersion].
+  ///
+  /// Unparseable versions (for example `dev`) never force an update, so local
+  /// builds are not locked out by a production policy.
+  bool get requiresUpdate {
+    final minimum = minimumSupportedVersion;
+    if (minimum == null) return false;
+    final current = AppVersion.tryParse(release);
+    final required = AppVersion.tryParse(minimum);
+    if (current == null || required == null) return false;
+    return current < required;
+  }
 
   AppConfiguration mergeApprovedRemote(RemoteConfiguration remote) {
     return AppConfiguration(

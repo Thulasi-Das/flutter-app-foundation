@@ -77,3 +77,25 @@ final class GuardedNavigationDriver implements NavigationDriver {
   @override
   Future<bool> maybePop() => delegate.maybePop();
 }
+
+/// Redirects destinations that require authentication to sign-in while the
+/// user is signed out.
+final class AuthenticationRouteGuard implements RouteGuard {
+  const AuthenticationRouteGuard(this.isAuthenticated);
+
+  final bool Function() isAuthenticated;
+
+  @override
+  Future<RouteAccess> evaluate(NavigationIntent<Object?> intent) async =>
+      intent.destination.requiresAuthentication && !isAuthenticated()
+      ? RouteAccess.redirectToSignIn
+      : RouteAccess.allow;
+}
+
+/// An [UnsavedChangesGuard] for apps without unsaved-state tracking.
+final class AlwaysAllowUnsavedChangesGuard implements UnsavedChangesGuard {
+  const AlwaysAllowUnsavedChangesGuard();
+
+  @override
+  Future<bool> mayLeave(String currentLocation) async => true;
+}

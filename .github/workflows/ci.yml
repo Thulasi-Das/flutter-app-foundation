@@ -8,23 +8,55 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
+    name: Validate (Flutter ${{ matrix.label }})
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        # The minimum supported release (pubspec `flutter:` constraint) and
+        # the current stable release (an empty version means latest stable).
+        include:
+          - label: "3.35.0"
+            version: "3.35.0"
+          - label: stable
+            version: ""
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: ${{ matrix.version }}
           cache: true
+      - run: flutter --version
       - run: flutter pub get
-      - run: dart format --output=none --set-exit-if-changed .
-      - run: flutter analyze
+      - name: Format
+        if: matrix.label == 'stable'
+        run: dart format --output=none --set-exit-if-changed .
+      - run: flutter analyze --fatal-infos
       - run: flutter test --coverage
-      - run: flutter create --platforms=web --project-name flutter_app_foundation_example .
+      - name: Pure-Dart self-check
+        run: dart run --enable-asserts tool/self_check.dart
+      - name: Example analyze and test
         working-directory: example
-      - run: flutter pub get
+        run: |
+          flutter pub get
+          flutter analyze --fatal-infos
+          flutter test
+      - name: Example web build
         working-directory: example
-      - run: flutter build web
-        working-directory: example
+        run: |
+          flutter create --platforms=web --project-name flutter_app_foundation_example .
+          flutter build web
+      - uses: actions/upload-artifact@v4
+        if: matrix.label == 'stable'
+        with:
+          name: coverage
+          path: coverage/lcov.info
+          if-no-files-found: error

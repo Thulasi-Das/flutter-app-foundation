@@ -18,12 +18,12 @@ void main() {
       );
 
   WorkspaceRecord record(String id, [int version = 1]) => WorkspaceRecord(
-        collection: 'notes',
-        recordId: id,
-        values: <String, Object?>{'title': id, 'private': true},
-        version: version,
-        updatedAt: DateTime.utc(2026, 8, 24),
-      );
+    collection: 'notes',
+    recordId: id,
+    values: <String, Object?>{'title': id, 'private': true},
+    version: version,
+    updatedAt: DateTime.utc(2026, 8, 24),
+  );
 
   test('Django-compatible wire fields are stable', () {
     expect(localDescriptor().toJson(), containsPair('contractVersion', '1.0'));
@@ -159,8 +159,7 @@ final class _MemoryFactory implements StoreFactory {
   WorkspaceStore create(
     StoreDescriptor descriptor,
     Map<String, String> secrets,
-  ) =>
-      InMemoryWorkspaceStore(descriptor);
+  ) => InMemoryWorkspaceStore(descriptor);
 }
 
 final class _RecordingDriverFactory implements WorkspaceSqliteDriverFactory {
@@ -187,8 +186,7 @@ final class _RecordingDriver implements WorkspaceSqliteDriver {
   Future<List<Map<String, Object?>>> query(
     String sql, [
     List<Object?> parameters = const <Object?>[],
-  ]) async =>
-      <Map<String, Object?>>[];
+  ]) async => <Map<String, Object?>>[];
 
   @override
   Future<void> close() async {

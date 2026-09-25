@@ -28,16 +28,16 @@ final class StoreException implements Exception {
 
 extension StoreErrorCodeWireName on StoreErrorCode {
   String get wireName => switch (this) {
-        StoreErrorCode.invalidConfiguration => 'invalid_configuration',
-        StoreErrorCode.authenticationFailed => 'authentication_failed',
-        StoreErrorCode.permissionDenied => 'permission_denied',
-        StoreErrorCode.notFound => 'not_found',
-        StoreErrorCode.conflict => 'conflict',
-        StoreErrorCode.rateLimited => 'rate_limited',
-        StoreErrorCode.unavailable => 'unavailable',
-        StoreErrorCode.unsupported => 'unsupported',
-        StoreErrorCode.storeError => 'store_error',
-      };
+    StoreErrorCode.invalidConfiguration => 'invalid_configuration',
+    StoreErrorCode.authenticationFailed => 'authentication_failed',
+    StoreErrorCode.permissionDenied => 'permission_denied',
+    StoreErrorCode.notFound => 'not_found',
+    StoreErrorCode.conflict => 'conflict',
+    StoreErrorCode.rateLimited => 'rate_limited',
+    StoreErrorCode.unavailable => 'unavailable',
+    StoreErrorCode.unsupported => 'unsupported',
+    StoreErrorCode.storeError => 'store_error',
+  };
 }
 
 final class StoreCapabilities {
@@ -60,14 +60,14 @@ final class StoreCapabilities {
   final bool multiDevice;
 
   Map<String, Object?> toJson() => <String, Object?>{
-        'transactions': transactions,
-        'watch': watch,
-        'pagination': pagination,
-        'attachments': attachments,
-        'offline': offline,
-        'endToEndEncryption': endToEndEncryption,
-        'multiDevice': multiDevice,
-      };
+    'transactions': transactions,
+    'watch': watch,
+    'pagination': pagination,
+    'attachments': attachments,
+    'offline': offline,
+    'endToEndEncryption': endToEndEncryption,
+    'multiDevice': multiDevice,
+  };
 }
 
 final class StoreDescriptor {
@@ -102,16 +102,16 @@ final class StoreDescriptor {
   final String? secretReference;
 
   Map<String, Object?> toJson() => <String, Object?>{
-        'contractVersion': contractVersion,
-        'storeId': storeId,
-        'workspaceId': workspaceId,
-        'provider': provider,
-        'privacyMode': privacyMode.wireName,
-        'dataLocation': dataLocation.wireName,
-        'displayName': displayName,
-        'configuration': configuration,
-        'secretReference': secretReference,
-      };
+    'contractVersion': contractVersion,
+    'storeId': storeId,
+    'workspaceId': workspaceId,
+    'provider': provider,
+    'privacyMode': privacyMode.wireName,
+    'dataLocation': dataLocation.wireName,
+    'displayName': displayName,
+    'configuration': configuration,
+    'secretReference': secretReference,
+  };
 
   factory StoreDescriptor.fromJson(Map<String, Object?> json) =>
       StoreDescriptor(
@@ -126,29 +126,27 @@ final class StoreDescriptor {
           (value) => value.wireName == json['dataLocation'],
         ),
         displayName: json['displayName'] as String?,
-        configuration: Map<String, Object?>.from(
-          json['configuration']! as Map,
-        ),
+        configuration: Map<String, Object?>.from(json['configuration']! as Map),
         secretReference: json['secretReference'] as String?,
       );
 }
 
 extension on PrivacyMode {
   String get wireName => switch (this) {
-        PrivacyMode.localOnly => 'local_only',
-        PrivacyMode.directUserProvider => 'direct_user_provider',
-        PrivacyMode.backendBrokered => 'backend_brokered',
-        PrivacyMode.managed => 'managed',
-      };
+    PrivacyMode.localOnly => 'local_only',
+    PrivacyMode.directUserProvider => 'direct_user_provider',
+    PrivacyMode.backendBrokered => 'backend_brokered',
+    PrivacyMode.managed => 'managed',
+  };
 }
 
 extension on DataLocation {
   String get wireName => switch (this) {
-        DataLocation.device => 'device',
-        DataLocation.userCloud => 'user_cloud',
-        DataLocation.userInfrastructure => 'user_infrastructure',
-        DataLocation.managedService => 'managed_service',
-      };
+    DataLocation.device => 'device',
+    DataLocation.userCloud => 'user_cloud',
+    DataLocation.userInfrastructure => 'user_infrastructure',
+    DataLocation.managedService => 'managed_service',
+  };
 }
 
 final class WorkspaceRecord {
@@ -175,13 +173,13 @@ final class WorkspaceRecord {
   final bool deleted;
 
   Map<String, Object?> toJson() => <String, Object?>{
-        'collection': collection,
-        'recordId': recordId,
-        'values': values,
-        'version': version,
-        'updatedAt': updatedAt.toUtc().toIso8601String(),
-        'deleted': deleted,
-      };
+    'collection': collection,
+    'recordId': recordId,
+    'values': values,
+    'version': version,
+    'updatedAt': updatedAt.toUtc().toIso8601String(),
+    'deleted': deleted,
+  };
 
   factory WorkspaceRecord.fromJson(Map<String, Object?> json) =>
       WorkspaceRecord(
@@ -378,8 +376,10 @@ final class InMemoryWorkspaceStore implements WorkspaceStore {
   @override
   final StoreDescriptor descriptor;
   @override
-  final StoreCapabilities capabilities =
-      const StoreCapabilities(transactions: true, offline: true);
+  final StoreCapabilities capabilities = const StoreCapabilities(
+    transactions: true,
+    offline: true,
+  );
   final Map<String, Map<String, WorkspaceRecord>> _records =
       <String, Map<String, WorkspaceRecord>>{};
 
@@ -394,15 +394,15 @@ final class InMemoryWorkspaceStore implements WorkspaceStore {
   Future<StorePage> list(StoreQuery query) async {
     final records =
         (_records[query.collection]?.values ?? const <WorkspaceRecord>[])
-        .where(
-          (record) =>
-              (query.includeDeleted || !record.deleted) &&
-              query.filters.entries.every(
-                (filter) => record.values[filter.key] == filter.value,
-              ),
-        )
-        .toList()
-      ..sort((left, right) => left.recordId.compareTo(right.recordId));
+            .where(
+              (record) =>
+                  (query.includeDeleted || !record.deleted) &&
+                  query.filters.entries.every(
+                    (filter) => record.values[filter.key] == filter.value,
+                  ),
+            )
+            .toList()
+          ..sort((left, right) => left.recordId.compareTo(right.recordId));
     final offset = int.tryParse(query.cursor ?? '0');
     if (offset == null || offset < 0) {
       throw const StoreException(StoreErrorCode.invalidConfiguration);
@@ -422,9 +422,9 @@ final class InMemoryWorkspaceStore implements WorkspaceStore {
     if (expectedVersion != null && expectedVersion != current?.version) {
       throw const StoreException(StoreErrorCode.conflict);
     }
-    (_records[record.collection] ??= <String, WorkspaceRecord>{})[
-      record.recordId
-    ] = record;
+    (_records[record.collection] ??=
+            <String, WorkspaceRecord>{})[record.recordId] =
+        record;
   }
 
   @override
