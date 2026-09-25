@@ -140,6 +140,19 @@ final class FoundationRouteTable {
     );
   }
 
+  /// Builds the initial stack for a deep-linked launch: the root route (when
+  /// one exists) under the target, instead of one page per path prefix.
+  List<Route<dynamic>> onGenerateInitialRoutes(String initialRoute) {
+    final target = onGenerateRoute(RouteSettings(name: initialRoute));
+    if (Uri.parse(initialRoute).path == '/' || resolve('/') == null) {
+      return <Route<dynamic>>[target];
+    }
+    return <Route<dynamic>>[
+      onGenerateRoute(const RouteSettings(name: '/')),
+      target,
+    ];
+  }
+
   Route<dynamic> onUnknownRoute(RouteSettings settings) =>
       MaterialPageRoute<Object?>(
         settings: settings,

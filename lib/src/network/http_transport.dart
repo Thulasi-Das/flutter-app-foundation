@@ -48,30 +48,44 @@ final class HttpNetworkTransport implements NetworkTransport {
     _encodeBody(outgoing, request.body);
 
     try {
-      final streamed = await _client.send(outgoing);
-      final response = await http.Response.fromStream(streamed);
+      // Race the abort signal as well, so clients that ignore abort triggers
+      // still cannot hang the caller.
+      final response = await Future.any<http.Response>(<Future<http.Response>>[
+        _client.send(outgoing).then(http.Response.fromStream),
+        abort.future.then<http.Response>((_) => throw const _Aborted()),
+      ]);
       return NetworkResponse(
         statusCode: response.statusCode,
         headers: response.headers,
         body: _decodeBody(response),
       );
+    } on _Aborted {
+      throw _abortFailure(request, correlationId, timedOut: timedOut);
     } on http.RequestAbortedException {
-      if (request.cancellation?.isCancelled ?? false) {
-        throw const RequestCancelled();
-      }
-      throw ApiFailure(
-        kind: ApiFailureKind.timeout,
-        code: timedOut ? 'request_timeout' : 'request_aborted',
-        message: 'The request timed out.',
-        correlationId: correlationId,
-        retryable: true,
-      );
+      throw _abortFailure(request, correlationId, timedOut: timedOut);
     } on http.ClientException {
       throw ApiFailure.offline(correlationId: correlationId);
     } finally {
       timer.cancel();
       if (!abort.isCompleted) abort.complete();
     }
+  }
+
+  static Exception _abortFailure(
+    NetworkRequest request,
+    String correlationId, {
+    required bool timedOut,
+  }) {
+    if (request.cancellation?.isCancelled ?? false) {
+      return const RequestCancelled();
+    }
+    return ApiFailure(
+      kind: ApiFailureKind.timeout,
+      code: timedOut ? 'request_timeout' : 'request_aborted',
+      message: 'The request timed out.',
+      correlationId: correlationId,
+      retryable: true,
+    );
   }
 
   /// Closes the underlying client when this transport created it.
@@ -121,4 +135,8 @@ final class HttpNetworkTransport implements NetworkTransport {
     }
     return Uint8List.fromList(bytes);
   }
+}
+
+final class _Aborted implements Exception {
+  const _Aborted();
 }

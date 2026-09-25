@@ -5,6 +5,7 @@ import '../bootstrap/bootstrap_gate.dart';
 import '../design_system/app_state_widgets.dart';
 import '../design_system/foundation_theme.dart';
 import '../localization/foundation_strings.dart';
+import '../navigation/route_table.dart';
 import '../state/service_scope.dart';
 import 'theme_controller.dart';
 
@@ -22,6 +23,7 @@ final class FoundationApp extends StatelessWidget {
     this.initialRoute,
     this.onGenerateRoute,
     this.onUnknownRoute,
+    this.routeTable,
     this.routerConfig,
     this.bootstrap,
     this.bootstrapLoadingBuilder,
@@ -43,8 +45,14 @@ final class FoundationApp extends StatelessWidget {
     this.debugShowCheckedModeBanner = false,
     super.key,
   }) : assert(
-         routerConfig == null || (home == null && onGenerateRoute == null),
-         'Use either routerConfig or home/onGenerateRoute, not both.',
+         routerConfig == null ||
+             (home == null && onGenerateRoute == null && routeTable == null),
+         'Use either routerConfig or home/onGenerateRoute/routeTable.',
+       ),
+       assert(
+         routeTable == null ||
+             (onGenerateRoute == null && onUnknownRoute == null),
+         'routeTable supplies onGenerateRoute and onUnknownRoute.',
        );
 
   final String title;
@@ -53,6 +61,10 @@ final class FoundationApp extends StatelessWidget {
   final String? initialRoute;
   final RouteFactory? onGenerateRoute;
   final RouteFactory? onUnknownRoute;
+
+  /// Declarative routes; supplies route generation, deep-link initial
+  /// routes, and the not-found page.
+  final FoundationRouteTable? routeTable;
   final RouterConfig<Object>? routerConfig;
 
   /// Startup steps that must complete before any route is built.
@@ -158,8 +170,9 @@ final class FoundationApp extends StatelessWidget {
       home: home,
       routes: routes,
       initialRoute: initialRoute,
-      onGenerateRoute: onGenerateRoute,
-      onUnknownRoute: onUnknownRoute,
+      onGenerateRoute: routeTable?.onGenerateRoute ?? onGenerateRoute,
+      onUnknownRoute: routeTable?.onUnknownRoute ?? onUnknownRoute,
+      onGenerateInitialRoutes: routeTable?.onGenerateInitialRoutes,
       navigatorKey: navigatorKey,
       navigatorObservers: navigatorObservers,
       theme: light,
