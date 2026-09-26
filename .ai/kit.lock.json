@@ -1,0 +1,23 @@
+{
+  "kit": "personal-ai-source-of-truth",
+  "version": "2.0.0",
+  "source_commit": "ba2962e3c5f4e26a1d86ddcc4b9f06007ef58be9",
+  "project": "flutter-app-foundation",
+  "stacks": [
+    "flutter"
+  ],
+  "role": "framework",
+  "files": {
+    ".ai/CONTRACTS.md": "c136aba3f075a4b4e411c663177d12a46f3dfb8c5c59a528a7f6e269a4400979",
+    ".ai/CORE_RULES.md": "d3a99740a4f86e699db85a6ae6903cc315b5ac7c823d32ce8cfa398f16fbf2af",
+    ".ai/HARNESS_NOTES.md": "a904659d59fab8986d5a8e48d7de859a219db7681e7e9b055bf50b4df70807a9",
+    ".ai/guides/llm_integration.md": "0e8967feecb94afd4228b84287427678cc3d220747033feff6ac84c8ff208d95",
+    ".ai/roles/framework.md": "da3c9f62d825ef0322edfc5134d22219a8ce874386ee57da6e48d5cfbb537288",
+    ".ai/stacks/flutter.md": "11ba3745bf608f0fb59b0d6122984e1f18f7be30cfb65a6882c532b34518ea6c",
+    ".claude/skills/critical-thinking/SKILL.md": "f9e90a51788c8456805412d3933355d216fb1835d1df7e3b22e9672624544870",
+    ".claude/skills/plan-change/SKILL.md": "2e37afccba816707fe89d9a1b42ae41dfc933250c15852858adc6cfa64599035",
+    ".claude/skills/review-change/SKILL.md": "3e20a7274531967f26e040edb8bd7ff19970c62ab81798e7a7c1055406f539c8",
+    "AGENTS.md": "0d79e0b5453d9f842b8f9c8996953bbd816ec2a51d1d8b938aa15fa12f861ad4",
+    "CLAUDE.md": "d3112f8e360825c488e880481276731d5a94ca93aca302bdcee77bfa5e645184"
+  }
+}
