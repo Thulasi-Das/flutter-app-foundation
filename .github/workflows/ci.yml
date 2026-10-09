@@ -54,7 +54,7 @@ jobs:
         run: |
           flutter create --platforms=web --project-name flutter_app_foundation_example .
           flutter build web
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: matrix.label == 'stable'
         with:
           name: coverage
